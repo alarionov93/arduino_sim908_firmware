@@ -32,19 +32,20 @@ int8_t sendATcommand(const char* ATcommand, const char* expected_answer, unsigne
         if(mySerial.available() != 0){    
             // if there are data in the UART input buffer, reads it and checks for the asnwer
             response[x] = mySerial.read();
-            printf("%c",response[x]);
+            // printf("%c",response[x]); // i am fucked by this shit ALL BECAUSE OF YHIS FUCKING line!!!!!!!!!!
             x++;
             // check if the desired answer  is in the response of the module
             if (strstr(response, expected_answer) != NULL)    
             {
-              printf("\n");
+              // printf("\n");
+              Serial.println("okay!!");
               answer = 1;
             }
         }
     }
     // Waits for the asnwer with time out
     while((answer == 0) && ((millis() - previous) < timeout));    
-    Serial.println(response);
+    // Serial.println(response);
 
     return answer;
 }
@@ -147,9 +148,9 @@ void loop() {
     delay(10);
     digitalWrite(SIM_908_ON, 0);
   }
-  if (mySerial.available()) {
-     Serial.write(mySerial.read());
-  }
+  // if (mySerial.available()) {
+  //    Serial.write(mySerial.read());
+  // }
   if (Serial.available()) {
     mySerial.write(Serial.read());
   }
