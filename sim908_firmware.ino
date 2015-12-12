@@ -187,6 +187,9 @@ void setup() {
 }
 
 void loop() {
+
+  //TODO: use check_stat and gsm_up here, to report if smthng is down during normal work of module
+
   // buttonState = digitalRead(BUTTON);
   // if (buttonState == HIGH)
   // {
