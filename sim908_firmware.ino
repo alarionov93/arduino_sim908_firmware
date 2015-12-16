@@ -81,6 +81,49 @@ int8_t sendATcommand(const char* ATcommand, const char* expected_answer, unsigne
     return answer;
 }
 
+char* sendATcommandWithAnswer(const char* ATcommand, const char* expected_answer, unsigned int timeout){
+
+    uint8_t x=0,  answer=0;
+    char response[100];
+    unsigned long previous;
+
+    memset(response, '\0', 100);    // Initialize empty string
+
+    delay(100);
+
+    while (Serial.available() > 0)
+    {
+      Serial.read();    // Clean the input buffer
+    }
+
+    Serial.print(ATcommand);    // Send the AT command 
+    Serial.print("\r\n");
+
+    x = 0;
+    previous = millis();
+
+    // this loop waits for the answer
+    do {
+        if(Serial.available() != 0)
+        {
+            // if there are data in the UART input buffer, reads it and checks for the asnwer
+            response[x] = Serial.read();
+            // printf("%c",response[x]); // i am fucked by this shit ALL BECAUSE OF YHIS FUCKING line!!!!!!!!!!
+            x++;
+            // check if the desired answer  is in the response of the module
+            // if (strstr(response, expected_answer) != NULL)    
+            // {
+            //   answer = 1;
+            // }
+        }
+    }
+    // Waits for the asnwer with time out
+    while ((answer == 0) && ((millis() - previous) < timeout));    
+    // Serial.println(response);
+
+    return response;
+}
+
 void ledFlash(int del, int pin, int count) {
   for (int i = 0; i < count; i++) {
     digitalWrite(pin, HIGH);
@@ -134,20 +177,30 @@ void gps_up() {
  uint8_t pwr=0;
  uint8_t rst=0;
  uint8_t stat=0;
+ uint8_t gps_pwr_stat = 0;
 
-  pwr = sendATcommand("AT+CGPSPWR=1", "OK", 2000);
-  rst = sendATcommand("AT+CGPSRST=1", "OK", 2000);
+  gps_pwr_stat = sendATcommand("AT+CGPSPWR?", "1", 2000);
 
-  while (pwr == 0 && rst == 0) { 
+  if(gps_pwr_stat == 0) {
+    ledFlash(100, GPS_LED_PIN, 5);
     pwr = sendATcommand("AT+CGPSPWR=1", "OK", 2000);
     rst = sendATcommand("AT+CGPSRST=1", "OK", 2000);
-    ledFlash(1000, GPS_LED_PIN, 5); // TODO: set flashing for 1 second as a signal that smthng went wrong!
+
+    while (pwr == 0 && rst == 0) { 
+      pwr = sendATcommand("AT+CGPSPWR=1", "OK", 2000);
+      rst = sendATcommand("AT+CGPSRST=1", "OK", 2000);
+      ledFlash(1000, GPS_LED_PIN, 5); // TODO: set flashing for 1 second as a signal that smthng went wrong! //report critical error here!
+    }
+  } else {
+    pwr = 1;
+    rst = 1;
+    ledFlash(100, GPS_LED_PIN, 2);
   }
   if(pwr == 1 && rst == 1) {
-    stat = sendATcommand("AT+CGPSSTATUS?", "Fix", 2000);
+    stat = sendATcommand("AT+CGPSSTATUS?", "D Fix", 2000);
     while(stat == 0) {
       ledFlash(200, GPS_LED_PIN, 5);
-      stat = sendATcommand("AT+CGPSSTATUS?", "Fix", 2000);
+      stat = sendATcommand("AT+CGPSSTATUS?", "D Fix", 2000);
       delay(60000);
     }
     if (stat) {
@@ -166,7 +219,7 @@ void gsm_up() {
   reg = sendATcommand("AT+CREG?", "1,1", 2000);
 
   if (!pin) {
-    pin = sendATcommand("AT+CPIN=1234", "READY", 2000); //TODO: pin code - ?
+    pin = sendATcommand("AT+CPIN=1777", "READY", 2000); //TODO: pin code - ?
   }
   while (!reg) { 
     ledFlash(200, GSM_LED_PIN, 5);
@@ -182,23 +235,34 @@ void gsm_up() {
 
 void gprs_up() {
   uint8_t gprs = 0;
+  uint8_t stat_gprs = 0;
 
-    sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000);
+    // sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000);
+    // stat_gprs = sendATcommand("AT+SAPBR=4,1", "internet.beeline.ru", 2000);
+    // if(stat_gprs == 1) {
+    //   gprs = sendATcommand("AT+SAPBR=0,1", "OK", 2000);
+    //   ledFlash(500, GSM_LED_PIN, 3);
+    // }
+    sendATcommand("AT+SAPBR=0,1", "OK", 2000); //always turn gprs off - to avoid if AT+SAPBR=1,1 returning ERROR
 
-    // // snprintf(aux_str, sizeof(aux_str), "AT+SAPBR=3,1,\"APN\",\"%s\"", apn);
-    // sendATcommand("AT+SAPBR=3,1,\"APN\",\"internet.beeline.ru\"", "OK", 2000);
+    sendATcommand("AT+SAPBR=3,1,\"APN\",\"internet.beeline.ru\"", "OK", 2000);
     
-    // // snprintf(aux_str, sizeof(aux_str), "AT+SAPBR=3,1,\"USER\",\"%s\"", user_name);
-    // sendATcommand("AT+SAPBR=3,1,\"USER\",\"beeline\"", "OK", 2000);
+    sendATcommand("AT+SAPBR=3,1,\"USER\",\"beeline\"", "OK", 2000);
     
-    // // snprintf(aux_str, sizeof(aux_str), "AT+SAPBR=3,1,\"PWD\",\"%s\"", password);
+    sendATcommand("AT+SAPBR=3,1,\"PWD\",\"beeline\"", "OK", 2000);
 
     // gets the GPRS bearer
     gprs = sendATcommand("AT+SAPBR=1,1", "OK", 10000);
     while (gprs == 0)
     {
-      // sendATcommand("AT+CFUN=1,1", "OK", 15000);
-      sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000);
+      // sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000);
+
+      sendATcommand("AT+SAPBR=3,1,\"APN\",\"internet.beeline.ru\"", "OK", 2000);
+    
+      sendATcommand("AT+SAPBR=3,1,\"USER\",\"beeline\"", "OK", 2000);
+    
+      sendATcommand("AT+SAPBR=3,1,\"PWD\",\"beeline\"", "OK", 2000);
+
       gprs = sendATcommand("AT+SAPBR=1,1", "OK", 10000);
       ledFlash(200, GSM_LED_PIN, 5);
       delay(1000);
@@ -329,13 +393,12 @@ void setup() {
   // mySerial.begin(115200);
 
   // check_stat();
-  delay(5000);
+  delay(2000);
   gsm_up();
   delay(1000);
   gprs_up();
   delay(1000);
   gps_up();
-  delay(1000);
 
   // sendCoordinates();
 
@@ -344,9 +407,7 @@ void setup() {
 void loop() {
 
   getCoordinates();
-  delay(1000);
   sendCoordinates();
-  delay(5000);
 
   //TODO: use check_stat and gsm_up here, to report if smthng is down during normal work of module
 
@@ -370,3 +431,6 @@ void loop() {
   //   mySerial.write(Serial.read());
   // }
 }
+
+
+
