@@ -29,10 +29,15 @@ char pin[4]="";
 char apn[29]="internet.beeline.ru";
 char user_name[17]="beeline";
 char password[17]="beeline";
-char url[150]="http://a-larionov.ru:2222/data_parser.php";
-char longitude[100]="";
-char latitude[100]="";
-char frame[150]="";
+char url[50]="http://a-larionov.ru:5000/gps";
+char longitude[30]="";
+char latitude[30]="";
+char altitude[10]="";
+char speed[11]="";
+char frame[200]="";
+char date[17]="";
+char satellites[4]="";
+char course[11]="";
 
 
 SoftwareSerial mySerial(SS_RX, SS_TX); // RX, TX
@@ -79,49 +84,6 @@ int8_t sendATcommand(const char* ATcommand, const char* expected_answer, unsigne
     // Serial.println(response);
 
     return answer;
-}
-
-char* sendATcommandWithAnswer(const char* ATcommand, const char* expected_answer, unsigned int timeout){
-
-    uint8_t x=0,  answer=0;
-    char response[100];
-    unsigned long previous;
-
-    memset(response, '\0', 100);    // Initialize empty string
-
-    delay(100);
-
-    while (Serial.available() > 0)
-    {
-      Serial.read();    // Clean the input buffer
-    }
-
-    Serial.print(ATcommand);    // Send the AT command 
-    Serial.print("\r\n");
-
-    x = 0;
-    previous = millis();
-
-    // this loop waits for the answer
-    do {
-        if(Serial.available() != 0)
-        {
-            // if there are data in the UART input buffer, reads it and checks for the asnwer
-            response[x] = Serial.read();
-            // printf("%c",response[x]); // i am fucked by this shit ALL BECAUSE OF YHIS FUCKING line!!!!!!!!!!
-            x++;
-            // check if the desired answer  is in the response of the module
-            // if (strstr(response, expected_answer) != NULL)    
-            // {
-            //   answer = 1;
-            // }
-        }
-    }
-    // Waits for the asnwer with time out
-    while ((answer == 0) && ((millis() - previous) < timeout));    
-    // Serial.println(response);
-
-    return response;
 }
 
 void ledFlash(int del, int pin, int count) {
@@ -179,7 +141,7 @@ void gps_up() {
  uint8_t stat=0;
  uint8_t gps_pwr_stat = 0;
 
-  gps_pwr_stat = sendATcommand("AT+CGPSPWR?", "1", 2000);
+  gps_pwr_stat = sendATcommand("AT+CGPSPWR?", "1", 2000); 
 
   if(gps_pwr_stat == 0) {
     ledFlash(100, GPS_LED_PIN, 5);
@@ -214,22 +176,31 @@ void gps_up() {
 void gsm_up() {
  uint8_t reg=0;
  uint8_t pin=0;
+ uint8_t x=0;
 
   pin = sendATcommand("AT+CPIN?", "READY", 2000);
-  reg = sendATcommand("AT+CREG?", "1,1", 2000);
+  reg = sendATcommand("AT+CREG?", "1,1", 1000);
 
   if (!pin) {
     pin = sendATcommand("AT+CPIN=1777", "READY", 2000); //TODO: pin code - ?
   }
   while (!reg) { 
+    x++;
     ledFlash(200, GSM_LED_PIN, 5);
-    reg = sendATcommand("AT+CREG?", "1,1", 2000);
+    reg = sendATcommand("AT+CREG?", "1,1", 1000);
+    if (x == 10)
+    {
+      break;
+    }
   }
   if (pin && reg) {
     digitalWrite(GSM_LED_PIN, HIGH);
     delay(4000);
     ledFlash(50, GSM_LED_PIN, 8);
     // if registered to the network - gsm led is ON
+  }
+  if (pin) {
+    ledFlash(50, GSM_LED_PIN, 8);
   }
 }
 
@@ -252,7 +223,7 @@ void gprs_up() {
     sendATcommand("AT+SAPBR=3,1,\"PWD\",\"beeline\"", "OK", 2000);
 
     // gets the GPRS bearer
-    gprs = sendATcommand("AT+SAPBR=1,1", "OK", 10000);
+    gprs = sendATcommand("AT+SAPBR=1,1", "OK", 30000); //30 seconds is the minimal value!
     while (gprs == 0)
     {
       // sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000);
@@ -263,9 +234,10 @@ void gprs_up() {
     
       sendATcommand("AT+SAPBR=3,1,\"PWD\",\"beeline\"", "OK", 2000);
 
-      gprs = sendATcommand("AT+SAPBR=1,1", "OK", 10000);
+      gprs = sendATcommand("AT+SAPBR=1,1", "OK", 30000);
       ledFlash(200, GSM_LED_PIN, 5);
       delay(1000);
+      ledFlash(50, GSM_LED_PIN, 10);
     }
     if (gprs == 1) {
       digitalWrite(GSM_LED_PIN, HIGH);
@@ -288,8 +260,7 @@ int8_t getCoordinates(){
     memset(frame, '\0', 100);    // Initialize the string
     previous = millis();
     // this loop waits for the NMEA string
-    do{
-
+    do {
         if(Serial.available() != 0){    
             frame[counter] = Serial.read();
             counter++;
@@ -309,14 +280,14 @@ int8_t getCoordinates(){
     strtok(frame, ",");
     strcpy(longitude,strtok(NULL, ",")); // Gets longitude
     strcpy(latitude,strtok(NULL, ",")); // Gets latitude
-    // strcpy(altitude,strtok(NULL, ".")); // Gets altitude 
-    // strtok(NULL, ",");    
-    // strcpy(date,strtok(NULL, ".")); // Gets date
-    // strtok(NULL, ",");
-    // strtok(NULL, ",");  
-    // strcpy(satellites,strtok(NULL, ",")); // Gets satellites
-    // strcpy(speedOTG,strtok(NULL, ",")); // Gets speed over ground. Unit is knots.
-    // strcpy(course,strtok(NULL, "\r")); // Gets course
+    strcpy(altitude,strtok(NULL, ".")); // Gets altitude 
+    strtok(NULL, ",");    
+    strcpy(date,strtok(NULL, ".")); // Gets date
+    strtok(NULL, ",");
+    strtok(NULL, ",");  
+    strcpy(satellites,strtok(NULL, ",")); // Gets satellites
+    strcpy(speed,strtok(NULL, ",")); // Gets speed over ground. Unit is knots.
+    strcpy(course,strtok(NULL, "\r")); // Gets course
 
     // convert2Degrees(latitude);
     // convert2Degrees(longitude);
@@ -324,20 +295,21 @@ int8_t getCoordinates(){
     return answer;
 }
 
-void sendCoordinates() {
+  void sendCoordinates() {
   bool success = false;
-  answer = sendATcommand("AT+HTTPINIT", "OK", 5000);
-    if (answer == 1)
-    {
-        // Sets CID parameter
-        answer = sendATcommand("AT+HTTPPARA=\"CID\",1", "OK", 2000);
+    if (atof(longitude) > 0 && atof(latitude) > 0) {
+      answer = sendATcommand("AT+HTTPINIT", "OK", 5000);
         if (answer == 1)
         {
+        // Sets CID parameter
+          answer = sendATcommand("AT+HTTPPARA=\"CID\",1", "OK", 2000);
+          if (answer == 1)
+          {
             // Sets url 
             sprintf(aux_str, "AT+HTTPPARA=\"URL\",\"%s", url);
             Serial.print(aux_str);
             // answer = sendATcommand(aux_str, "OK", 2000);
-            sprintf(frame, "?latitude=%s&longitude=%s", latitude, longitude);
+            sprintf(frame, "?lat=%s&lon=%s&alt=%s&speed=%s", latitude, longitude, altitude, speed);
             Serial.print(frame);
             answer = sendATcommand("\"", "OK", 5000);
             if (answer == 1)
@@ -345,69 +317,55 @@ void sendCoordinates() {
               answer = sendATcommand("AT+HTTPPARA=\"CONTENT\",\"application/x-www-form-urlencoded\"", "OK", 2000);
               if(answer == 1) {
                 // Starts GET action
-                answer = sendATcommand("AT+HTTPACTION=0", "+HTTPACTION:0,200", 20000);
-                if (answer == 1)
-                {
-                    success = true;
-                }
-                else
-                {
-                    Serial.println(F("Error getting url"));
+                answer = sendATcommand("AT+HTTPACTION=0", "+HTTPACTION:0,200", 10000);
+                if (answer == 1) {
+                  success = true;
+                } else {
+                  Serial.println(F("Error getting url"));
+                  //here if url is not available, set old url a-larionov.ru:2222/data_parser.php
                 }
               } else {
                 Serial.println(F("Error setting cont type"));
               }
-
+            } else {
+              Serial.println(F("Error setting the url"));
             }
-            else
-            {
-                Serial.println(F("Error setting the url"));
-            }
-        }
-        else
-        {
+          } else {
             Serial.println(F("Error setting the CID"));
-        }    
+          }    
+        } else {
+          Serial.println(F("Error initializating"));
+        }
+      sendATcommand("AT+HTTPTERM", "OK", 5000);
+      if (success == true)
+      {
+        ledFlash(80, GSM_LED_PIN, 20);
+      }
+    } else {
+      ledFlash(80, GPS_LED_PIN, 20);
     }
-    else
-    {
-        Serial.println(F("Error initializating"));
-    }
-
-    sendATcommand("AT+HTTPTERM", "OK", 5000);
-    if (success == true)
-    {
-      ledFlash(80, GSM_LED_PIN, 20);
-      delay(1000);
-    }
-}
+  }
 
 void setup() {
   pinMode(SIM_908_PWR_PIN, OUTPUT);
-  // pinMode(BUTTON, INPUT);
   pinMode(GPS_LED_PIN, OUTPUT);
   pinMode(GSM_LED_PIN, OUTPUT);
-  pinMode(PWR_LED_PIN, OUTPUT);
 
   Serial.begin(115200);
   // mySerial.begin(115200);
-
-  // check_stat();
   delay(2000);
   gsm_up();
-  delay(1000);
+  delay(100);
   gprs_up();
-  delay(1000);
+  delay(100);
   gps_up();
-
-  // sendCoordinates();
-
 }
 
 void loop() {
 
   getCoordinates();
   sendCoordinates();
+  delay(10000); //TODO: coordinates difference should depend on calculation this value!!
 
   //TODO: use check_stat and gsm_up here, to report if smthng is down during normal work of module
 
@@ -431,6 +389,3 @@ void loop() {
   //   mySerial.write(Serial.read());
   // }
 }
-
-
-
