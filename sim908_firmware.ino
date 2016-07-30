@@ -25,6 +25,7 @@ TODO list:
 #define DEFAULT_TRACK_MODE_DELAY 60000 
 #define TRACK_MODE      1
 #define WATCH_MODE      0
+#define DEVICE_ID       "13450633605839585280"
 // #ifndef ISR
 // ISR(USART_RX_vect) {
 //   ledFlash(20, OK_PIN, 1);
@@ -362,7 +363,7 @@ bool success = false;
           sprintf(aux_str, "AT+HTTPPARA=\"URL\",\"%s", url);
           Serial.print(aux_str);
           // answer = sendATcommand(aux_str, "OK", 2000);
-          sprintf(frame, "?lat=%s&lon=%s&alt=%s&speed=%s", latitude, longitude, altitude, speed);
+          sprintf(frame, "?lat=%s&lon=%s&alt=%s&speed=%s&device=%s", latitude, longitude, altitude, speed, DEVICE_ID);
           Serial.print(frame);
           answer = sendATcommand("\"", "OK", 5000);
           if (answer == 1)
