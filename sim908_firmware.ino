@@ -10,6 +10,8 @@ TODO list:
 */
 
 #include <SoftwareSerial.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
 
 #define SIM_908_PWR_RATE 170
 #define SS_RX           2
@@ -17,22 +19,34 @@ TODO list:
 #define PWR_LED_PIN     9
 #define BUTTON          11
 #define SIM_908_PWR_PIN 10
-#define GSM_LED_PIN     12
-#define GPS_LED_PIN     13
+#define ERROR_PIN       12
+#define OK_PIN          13
 #define DEFAULT_WATCH_MODE_DELAY 1800000 //half an hour
+#define DEFAULT_TRACK_MODE_DELAY 60000 
+#define TRACK_MODE      1
+#define WATCH_MODE      0
+// #ifndef ISR
+// ISR(USART_RX_vect) {
+//   ledFlash(20, OK_PIN, 1);
+//   reti();
+// }
+// #endif
+
 
 int buttonState = 0;
 int timer = 0;
 bool DEBUG = true;
 uint8_t answer=0;
 char aux_str[100];
-uint8_t MODE_DELAY = 1800000;
+uint8_t MODE_DELAY = 80000;
+int mode = TRACK_MODE;
 
 char pin[4]="";
 char apn[29]="internet.beeline.ru";
 char user_name[17]="beeline";
 char password[17]="beeline";
 char url[50]="http://a-larionov.ru:5000/gps";
+char url_old[50]="http://a-larionov.ru:5000/data_parser.php";
 char longitude[30]="";
 char latitude[30]="";
 char altitude[10]="";
@@ -56,7 +70,7 @@ int8_t sendATcommand(const char* ATcommand, const char* expected_answer, unsigne
 
     delay(100);
 
-    while (Serial.available() > 0)
+    while (Serial.available() > 0) // 1
     {
       Serial.read();    // Clean the input buffer
     }
@@ -68,6 +82,7 @@ int8_t sendATcommand(const char* ATcommand, const char* expected_answer, unsigne
     previous = millis();
 
     // this loop waits for the answer
+    // 2
     do {
         if(Serial.available() != 0)
         {
@@ -89,7 +104,7 @@ int8_t sendATcommand(const char* ATcommand, const char* expected_answer, unsigne
     return answer;
 }
 
-void ledFlash(int del, int pin, int count) {
+void ledFlash(int del, int pin, int count) { // 3
   for (int i = 0; i < count; i++) {
     digitalWrite(pin, HIGH);
     delay(del);
@@ -109,7 +124,7 @@ void reboot() {
   }
 }
 
-void sleep_module(uint8_t time) {
+void sleep_module() {
   uint8_t answer=0;
 
   answer = sendATcommand("AT+CFUN=0", "OK", 5000);
@@ -129,6 +144,11 @@ void wake_up() {
      answer = sendATcommand("AT+CFUN=1", "OK", 5000);
     }
   }
+
+  delay(10000);
+  gprs_up();
+  delay(2000);
+  gps_up();
 }
 
 void power_down() {
@@ -151,12 +171,12 @@ void check_stat() {
   answer = sendATcommand("AT", "OK", 2000);
   if (answer == 0) {
     while(answer == 0){     // Send AT every two seconds and wait for the answer
-      ledFlash(200, GSM_LED_PIN, 5);
+      ledFlash(200, ERROR_PIN, 5);
       answer = sendATcommand("AT", "OK", 2000);
     }
   }
   if (answer == 1) {
-    ledFlash(500, GSM_LED_PIN, 5);
+    ledFlash(500, ERROR_PIN, 5);
   }
 }
 
@@ -169,32 +189,35 @@ void gps_up() {
   gps_pwr_stat = sendATcommand("AT+CGPSPWR?", "1", 2000); 
 
   if(gps_pwr_stat == 0) {
-    ledFlash(100, GPS_LED_PIN, 5);
+    ledFlash(200, OK_PIN, 5);
     pwr = sendATcommand("AT+CGPSPWR=1", "OK", 2000);
     rst = sendATcommand("AT+CGPSRST=1", "OK", 2000);
 
     while (pwr == 0 && rst == 0) { 
       pwr = sendATcommand("AT+CGPSPWR=1", "OK", 2000);
-      rst = sendATcommand("AT+CGPSRST=1", "OK", 2000);
-      ledFlash(1000, GPS_LED_PIN, 5); // TODO: set flashing for 1 second as a signal that smthng went wrong! //report critical error here!
+      rst = sendATcommand("AT+CGPSRST=1", "OK", 2000); //TODO: ERR???
+      ledFlash(200, OK_PIN, 5); // TODO: set flashing for 1 second as a signal that smthng went wrong! //report critical error here!
     }
   } else {
     pwr = 1;
     rst = 1;
-    ledFlash(100, GPS_LED_PIN, 2);
   }
   if(pwr == 1 && rst == 1) {
     stat = sendATcommand("AT+CGPSSTATUS?", "D Fix", 2000);
     while(stat == 0) {
-      ledFlash(200, GPS_LED_PIN, 5);
+      ledFlash(200, OK_PIN, 5);
       stat = sendATcommand("AT+CGPSSTATUS?", "D Fix", 2000);
       delay(60000);
     }
     if (stat) {
-      digitalWrite(GPS_LED_PIN, HIGH); // if got gps satellites - gps led is ON
+      digitalWrite(OK_PIN, HIGH); // if got gps satellites - gps led is ON // 4
+      delay(2000);
+      digitalWrite(OK_PIN, LOW);
     }
   } else {
     // critical error here!
+    digitalWrite(ERROR_PIN, HIGH);
+    delay(10000);
   }
 }
 
@@ -204,28 +227,27 @@ void gsm_up() {
  uint8_t x=0;
 
   pin = sendATcommand("AT+CPIN?", "READY", 2000);
-  reg = sendATcommand("AT+CREG?", "1,1", 1000);
+  reg = sendATcommand("AT+CREG?", "1", 1000);
 
   if (!pin) {
     pin = sendATcommand("AT+CPIN=1777", "READY", 2000); //TODO: pin code - ?
   }
   while (!reg) { 
-    x++;
-    ledFlash(200, GSM_LED_PIN, 5);
-    reg = sendATcommand("AT+CREG?", "1,1", 1000);
-    if (x == 10)
-    {
-      break;
-    }
+    // x++;
+    reg = sendATcommand("AT+CREG?", "1", 1000);
+    // if (x == 10)
+    // {
+    //   break;
+    // }
   }
   if (pin && reg) {
-    digitalWrite(GSM_LED_PIN, HIGH);
-    delay(4000);
-    ledFlash(50, GSM_LED_PIN, 8);
-    // if registered to the network - gsm led is ON
+    digitalWrite(OK_PIN, HIGH); // TODO: SHOW OK
+    delay(2000);
+    digitalWrite(OK_PIN, LOW);
+    // ledFlash(100, ERROR_PIN, 5);
   }
   if (pin) {
-    ledFlash(50, GSM_LED_PIN, 8);
+    // ledFlash(100, ERROR_PIN, 5);
   }
 }
 
@@ -237,42 +259,44 @@ void gprs_up() {
     // stat_gprs = sendATcommand("AT+SAPBR=4,1", "internet.beeline.ru", 2000);
     // if(stat_gprs == 1) {
     //   gprs = sendATcommand("AT+SAPBR=0,1", "OK", 2000);
-    //   ledFlash(500, GSM_LED_PIN, 3);
+    //   ledFlash(500, ERROR_PIN, 3);
     // }
-    ledFlash(100, GSM_LED_PIN, 3);
-    sendATcommand("AT+SAPBR=0,1", "OK", 2000); //always turn gprs off - to avoid if AT+SAPBR=1,1 returning ERROR
+    ledFlash(200, OK_PIN, 5);
+    sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000); //for sim with 963016...0!
 
-    sendATcommand("AT+SAPBR=3,1,\"APN\",\"internet.beeline.ru\"", "OK", 2000);
+    // sendATcommand("AT+SAPBR=0,1", "OK", 2000); //always turn gprs off - to avoid if AT+SAPBR=1,1 returning ERROR
+    // not needed for the first time after turn module on!!!
+
+    // sendATcommand("AT+SAPBR=3,1,\"APN\",\"internet.beeline.ru\"", "OK", 2000);
     
-    sendATcommand("AT+SAPBR=3,1,\"USER\",\"beeline\"", "OK", 2000);
+    // sendATcommand("AT+SAPBR=3,1,\"USER\",\"beeline\"", "OK", 2000);
     
-    sendATcommand("AT+SAPBR=3,1,\"PWD\",\"beeline\"", "OK", 2000);
+    // sendATcommand("AT+SAPBR=3,1,\"PWD\",\"beeline\"", "OK", 2000);
 
     // gets the GPRS bearer
-    gprs = sendATcommand("AT+SAPBR=1,1", "OK", 30000); //30 seconds is the minimal value!
+    gprs = sendATcommand("AT+SAPBR=1,1", "OK", 45000); //30 seconds is the minimal value!
     while (gprs == 0)
     {
-      ledFlash(200, GSM_LED_PIN, 5);
-      // sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000);
+      ledFlash(200, OK_PIN, 5); //TODO: SHOW 
+      sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000);
       sendATcommand("AT+SAPBR=0,1", "OK", 2000); //always turn gprs off - to avoid if AT+SAPBR=1,1 returning ERROR
 
-      sendATcommand("AT+SAPBR=3,1,\"APN\",\"internet.beeline.ru\"", "OK", 2000);
+      // sendATcommand("AT+SAPBR=3,1,\"APN\",\"internet.beeline.ru\"", "OK", 2000);
     
-      sendATcommand("AT+SAPBR=3,1,\"USER\",\"beeline\"", "OK", 2000);
+      // sendATcommand("AT+SAPBR=3,1,\"USER\",\"beeline\"", "OK", 2000);
     
-      sendATcommand("AT+SAPBR=3,1,\"PWD\",\"beeline\"", "OK", 2000);
+      // sendATcommand("AT+SAPBR=3,1,\"PWD\",\"beeline\"", "OK", 2000);
 
       gprs = sendATcommand("AT+SAPBR=1,1", "OK", 30000);
-      // ledFlash(200, GSM_LED_PIN, 5);
-      // delay(1000);
-      // ledFlash(50, GSM_LED_PIN, 10);
     }
     if (gprs == 1) {
-      digitalWrite(GSM_LED_PIN, HIGH);
+      digitalWrite(OK_PIN, HIGH); // TODO: SHOW OK
+      delay(2000);
+      digitalWrite(OK_PIN, LOW);
     }
 }
 
-int8_t getCoordinates(){
+int8_t getCoordinates() {
 
     int8_t counter, answer;
     long previous;
@@ -316,9 +340,6 @@ int8_t getCoordinates(){
     strcpy(satellites,strtok(NULL, ",")); // Gets satellites
     strcpy(speed,strtok(NULL, ",")); // Gets speed over ground. Unit is knots.
     strcpy(course,strtok(NULL, "\r")); // Gets course
-
-    // convert2Degrees(latitude);
-    // convert2Degrees(longitude);
     
     return answer;
 }
@@ -353,28 +374,33 @@ bool success = false;
               if (answer == 1) {
                 success = true;
               } else {
-                Serial.println(F("Error getting url"));
+                Serial.println(F("Error getting url")); // TODO: SHOW ERR
                 //here if url is not available, set old url a-larionov.ru:2222/data_parser.php
+                ledFlash(1000, ERROR_PIN, 10); //this is set to understand that something went wrong on data sending - the last step!
               }
-            } else {
+            } else { //TODO: ALL HERE SHOW ERR
               Serial.println(F("Error setting cont type"));
+              ledFlash(1000, ERROR_PIN, 10);
             }
           } else {
             Serial.println(F("Error setting the url"));
+            ledFlash(1000, ERROR_PIN, 10);
           }
         } else {
           Serial.println(F("Error setting the CID"));
+          ledFlash(1000, ERROR_PIN, 10);
         }    
       } else {
         Serial.println(F("Error initializating"));
+        ledFlash(1000, ERROR_PIN, 10);
       }
     sendATcommand("AT+HTTPTERM", "OK", 5000);
     if (success == true)
     {
-      ledFlash(80, GSM_LED_PIN, 20);
+      ledFlash(100, OK_PIN, 2); // TODO: SHOW OK
     }
   } else {
-    ledFlash(80, GPS_LED_PIN, 20);
+    ledFlash(100, OK_PIN, 3);// TODO: SHOW near OK
   }
 }
 
@@ -382,9 +408,9 @@ void setup() {
   
   //configure pins
   pinMode(SIM_908_PWR_PIN, OUTPUT);
-  pinMode(GPS_LED_PIN, OUTPUT);
-  pinMode(GSM_LED_PIN, OUTPUT);
-
+  pinMode(OK_PIN, OUTPUT);
+  pinMode(ERROR_PIN, OUTPUT);
+  mode = TRACK_MODE;
   //configure serials
   Serial.begin(19200);
   SoftSerial.begin(19200);
@@ -392,17 +418,34 @@ void setup() {
   //
   delay(2000);
   gsm_up();
+  ledFlash(50, ERROR_PIN, 3);
   delay(100);
   gprs_up();
+  ledFlash(50, ERROR_PIN, 3);
   delay(100);
   gps_up();
+  ledFlash(50, ERROR_PIN, 3);
 }
 
 void loop() {
+  delay(1000);
+  ledFlash(50, OK_PIN, 20); //before sending coordinates 20 flashes!
 
-  // getCoordinates();
-  // sendCoordinates();
-  // delay(MODE_DELAY); //TODO: coordinates difference should depend on calculation this value!!
+  getCoordinates();
+  sendCoordinates();
+  if (mode == TRACK_MODE)
+  {
+    delay(DEFAULT_TRACK_MODE_DELAY); 
+  }
+  else 
+  {
+    sleep_module();
+    delay(DEFAULT_WATCH_MODE_DELAY);
+    wake_up();
+  }
+
+
+  //TODO: coordinates difference should depend on calculation this value!!
 
   //TODO: use check_stat and gsm_up here, to report if smthng is down during normal work of module
 
@@ -426,6 +469,4 @@ void loop() {
   //   SoftSerial.write(Serial.read());
   // }
 }
-
-
 
