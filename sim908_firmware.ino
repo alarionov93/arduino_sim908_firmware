@@ -48,6 +48,7 @@ char user_name[17]="beeline";
 char password[17]="beeline";
 char url[50]="http://a-larionov.ru:5000/gps";
 char url_old[50]="http://a-larionov.ru:5000/data_parser.php";
+char error_url[40]="http://a-larionov.ru:5000/err";
 char longitude[30]="";
 char latitude[30]="";
 char altitude[10]="";
@@ -103,6 +104,58 @@ int8_t sendATcommand(const char* ATcommand, const char* expected_answer, unsigne
     // Serial.println(response);
 
     return answer;
+}
+
+void report_err(int try_num, char msg[40]) { // USE ONLY AFTER GETTING GPRS BEARER !!
+  bool success = false;
+  answer = sendATcommand("AT+HTTPINIT", "OK", 5000);
+      if (answer == 1)
+      {
+      // Sets CID parameter
+        answer = sendATcommand("AT+HTTPPARA=\"CID\",1", "OK", 2000);
+        if (answer == 1)
+        {
+          // Sets url 
+          sprintf(aux_str, "AT+HTTPPARA=\"URL\",\"%s", error_url);
+          Serial.print(aux_str);
+          // answer = sendATcommand(aux_str, "OK", 2000);
+          sprintf(frame, "?error=%s&device=%s", msg, DEVICE_ID);
+          Serial.print(frame);
+          answer = sendATcommand("\"", "OK", 5000);
+          if (answer == 1)
+          {
+            answer = sendATcommand("AT+HTTPPARA=\"CONTENT\",\"application/x-www-form-urlencoded\"", "OK", 2000);
+            if(answer == 1) {
+              // Starts GET action
+              answer = sendATcommand("AT+HTTPACTION=0", "+HTTPACTION:0,200", 10000);
+              if (answer == 1) {
+                success = true;
+              } else {
+                Serial.println(F("Error getting url")); // TODO: SHOW ERR
+                //here if url is not available, set old url a-larionov.ru:2222/data_parser.php
+                ledFlash(1000, ERROR_PIN, 10); //this is set to understand that something went wrong on data sending - the last step!
+              }
+            } else { //TODO: ALL HERE SHOW ERR
+              Serial.println(F("Error setting cont type"));
+              ledFlash(1000, ERROR_PIN, 10);
+            }
+          } else {
+            Serial.println(F("Error setting the url"));
+            ledFlash(1000, ERROR_PIN, 10);
+          }
+        } else {
+          Serial.println(F("Error setting the CID"));
+          ledFlash(1000, ERROR_PIN, 10);
+        }    
+      } else {
+        Serial.println(F("Error initializating"));
+        ledFlash(1000, ERROR_PIN, 10);
+      }
+    sendATcommand("AT+HTTPTERM", "OK", 5000);
+    if (success == true)
+    {
+      ledFlash(200, ERROR_PIN, 7); // TODO: SHOW OK
+    }
 }
 
 void ledFlash(int del, int pin, int count) { // 3
@@ -186,6 +239,7 @@ void gps_up() {
  uint8_t rst=0;
  uint8_t stat=0;
  uint8_t gps_pwr_stat = 0;
+ int x=0;
 
   gps_pwr_stat = sendATcommand("AT+CGPSPWR?", "1", 2000); 
 
@@ -207,8 +261,13 @@ void gps_up() {
     stat = sendATcommand("AT+CGPSSTATUS?", "D Fix", 2000);
     while(stat == 0) {
       ledFlash(200, OK_PIN, 5);
+      delay(20000); //TODO: move this before sending command
       stat = sendATcommand("AT+CGPSSTATUS?", "D Fix", 2000);
-      delay(60000);
+      x++;
+      if (x >= 30)
+      {
+        report_err(x, "Can not fix location.");
+      }
     }
     if (stat) {
       digitalWrite(OK_PIN, HIGH); // if got gps satellites - gps led is ON // 4
