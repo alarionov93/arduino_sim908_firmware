@@ -18,11 +18,11 @@ TODO list:
 #define SS_TX           3
 #define PWR_LED_PIN     9
 #define BUTTON          11
-#define SIM_908_PWR_PIN 10
+#define SWITCH_MODE_PIN 10
 #define ERROR_PIN       12
 #define OK_PIN          13
-#define DEFAULT_WATCH_MODE_DELAY 1800000 //half an hour
-#define DEFAULT_TRACK_MODE_DELAY 60000 
+#define DEFAULT_WATCH_MODE_DELAY 900000 //15 mins
+#define DEFAULT_TRACK_MODE_DELAY 45000 
 #define TRACK_MODE      1
 #define WATCH_MODE      0
 #define DEVICE_ID       "13450633605839585280"
@@ -34,7 +34,7 @@ TODO list:
 // #endif
 
 
-int buttonState = 0;
+int button_state = 0;
 int timer = 0;
 bool DEBUG = true;
 uint8_t answer=0;
@@ -198,11 +198,12 @@ void wake_up() {
      answer = sendATcommand("AT+CFUN=1", "OK", 5000);
     }
   }
-
-  delay(10000);
+  
+  delay(5000);
   gprs_up();
   delay(2000);
   gps_up();
+  ledFlash(200, OK_PIN, 12);
 }
 
 void power_down() {
@@ -264,9 +265,9 @@ void gps_up() {
       delay(20000); //TODO: move this before sending command
       stat = sendATcommand("AT+CGPSSTATUS?", "D Fix", 2000);
       x++;
-      if (x >= 30)
+      if (x >= 4)
       {
-        report_err(x, "Can not fix location.");
+        report_err(x, "Can_not_fix_location"); // IMPORTANT !! NOT use characters that may cause URL breaks!!
       }
     }
     if (stat) {
@@ -304,7 +305,6 @@ void gsm_up() {
     digitalWrite(OK_PIN, HIGH); // TODO: SHOW OK
     delay(2000);
     digitalWrite(OK_PIN, LOW);
-    // ledFlash(100, ERROR_PIN, 5);
   }
   if (pin) {
     // ledFlash(100, ERROR_PIN, 5);
@@ -347,7 +347,7 @@ void gprs_up() {
     
       // sendATcommand("AT+SAPBR=3,1,\"PWD\",\"beeline\"", "OK", 2000);
 
-      gprs = sendATcommand("AT+SAPBR=1,1", "OK", 30000);
+      gprs = sendATcommand("AT+SAPBR=1,1", "OK", 40000);
     }
     if (gprs == 1) {
       digitalWrite(OK_PIN, HIGH); // TODO: SHOW OK
@@ -356,7 +356,7 @@ void gprs_up() {
     }
 }
 
-int8_t getCoordinates() {
+int8_t getCoordinates() { //TODO add reporting error if location is missing !
 
     int8_t counter, answer;
     long previous;
@@ -409,7 +409,7 @@ void alarm() {
 }
 
 void sendCoordinates() {
-bool success = false;
+  bool success = false;
   if (atof(longitude) > 0 && atof(latitude) > 0) {
     answer = sendATcommand("AT+HTTPINIT", "OK", 5000);
       if (answer == 1)
@@ -460,6 +460,8 @@ bool success = false;
       ledFlash(100, OK_PIN, 2); // TODO: SHOW OK
     }
   } else {
+    // report missing location HERE
+    report_err(1, "Location_is_lost");
     ledFlash(100, OK_PIN, 3);// TODO: SHOW near OK
   }
 }
@@ -467,15 +469,16 @@ bool success = false;
 void setup() {
   
   //configure pins
-  pinMode(SIM_908_PWR_PIN, OUTPUT);
   pinMode(OK_PIN, OUTPUT);
   pinMode(ERROR_PIN, OUTPUT);
+  pinMode(SWITCH_MODE_PIN, INPUT);
   mode = TRACK_MODE;
+  
   //configure serials
   Serial.begin(19200);
   SoftSerial.begin(19200);
 
-  //
+  //configure module
   delay(2000);
   gsm_up();
   ledFlash(50, ERROR_PIN, 3);
@@ -488,11 +491,17 @@ void setup() {
 }
 
 void loop() {
-  delay(1000);
+  button_state = digitalRead(SWITCH_MODE_PIN);
   ledFlash(50, OK_PIN, 20); //before sending coordinates 20 flashes!
 
   getCoordinates();
   sendCoordinates();
+  
+  if(button_state == HIGH) {
+    mode = TRACK_MODE;
+  } else {
+    mode = WATCH_MODE;
+  }
   if (mode == TRACK_MODE)
   {
     delay(DEFAULT_TRACK_MODE_DELAY); 
@@ -508,18 +517,6 @@ void loop() {
   //TODO: coordinates difference should depend on calculation this value!!
 
   //TODO: use check_stat and gsm_up here, to report if smthng is down during normal work of module
-
-  // buttonState = digitalRead(BUTTON);
-  // if (buttonState == HIGH)
-  // {
-  //   // timer++;
-  //   // delay(10);
-  //   analogWrite(SIM_908_PWR_PIN, SIM_908_PWR_RATE);
-  // } else {
-  //   // timer = 0;
-  //   // delay(10);
-  //   digitalWrite(SIM_908_PWR_PIN, 0);
-  // }
 
   // delay(2000);
   // if (DEBUG == true && SoftSerial.available()) {
