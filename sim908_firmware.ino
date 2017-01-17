@@ -16,7 +16,7 @@ TODO list:
 #define SIM_908_PWR_RATE 170
 #define SS_RX           2
 #define SS_TX           3
-#define PWR_LED_PIN     9
+#define SIG_PIN         9
 #define BUTTON          11
 #define SWITCH_MODE_PIN 10
 #define ERROR_PIN       12
@@ -32,7 +32,6 @@ TODO list:
 //   reti();
 // }
 // #endif
-
 
 int button_state = 0;
 int timer = 0;
@@ -57,6 +56,10 @@ char frame[200]="";
 char date[17]="";
 char satellites[4]="";
 char course[11]="";
+char chgMode[2]="";
+char percent[4]="";
+char voltage[5]="";
+char batLvlStr[60]="";
 
 
 SoftwareSerial SoftSerial(SS_RX, SS_TX); // RX, TX
@@ -408,6 +411,65 @@ void alarm() {
 
 }
 
+void getBatChgLvl() {
+  
+  int8_t counter, answer;
+  long previous;
+  uint8_t [60] response;
+  // Clean the input buffer
+  while( Serial.available() > 0) Serial.read(); 
+  // request Basic string
+  sendATcommand("AT+CBC", "+CBC\r\n\r\n", 2000);
+
+  counter = 0;
+  answer = 0;
+  memset(response, '\0', 100);    // Initialize the string
+  previous = millis();
+  // this loop waits for the NMEA string
+  do {
+      if(Serial.available() != 0){    
+          response[counter] = Serial.read();
+          counter++;
+          // check if the desired answer is in the response of the module
+          if (strstr(response, "OK") != NULL)    
+          {
+              answer = 1;
+          }
+      }
+      // Waits for the asnwer with time out
+  }
+  while((answer == 0) && ((millis() - previous) < 2000));  
+
+  response[counter-1] = '\0'; 
+
+  // Parses the string 
+  strcpy(batLvlStr, response);
+  strtok(response, ",");
+  strcpy(chgMode,strtok(NULL, ",")); // Gets battery charging mode (0-NOT charging, 1-charging, 2-charged)
+  strcpy(percent,strtok(NULL, ",")); // Gets battery percentage
+  strcpy(voltage,strtok(NULL, ".")); // Gets battery voltage
+  
+  return answer;
+}
+
+void sendBatChgLvl() {
+  // to cause interrupt on reciever device, because interrupts by incoming bytes in UART on it are disabled =(
+  digitalWrite(SIG_PIN, HIGH);
+  delay(200);
+  digitalWrite(SIG_PIN, LOW);
+
+  // TODO: make this to work!!
+  SoftSerial.print(batLvlStr);
+  SoftSerial.print(chgMode);
+  SoftSerial.print(percent);
+  SoftSerial.print(voltage);
+
+  Serial.print(batLvlStr);
+  Serial.print(chgMode);
+  Serial.print(percent);
+  Serial.print(voltage);
+}
+
 void sendCoordinates() {
   bool success = false;
   if (atof(longitude) > 0 && atof(latitude) > 0) {
@@ -472,6 +534,7 @@ void setup() {
   pinMode(OK_PIN, OUTPUT);
   pinMode(ERROR_PIN, OUTPUT);
   pinMode(SWITCH_MODE_PIN, INPUT);
+  pinMode(8, INPUT);
   mode = TRACK_MODE;
   
   //configure serials
@@ -479,6 +542,10 @@ void setup() {
   SoftSerial.begin(19200);
 
   //configure module
+  getBatChgLvl();
+  delay(200);
+  sendBatChgLvl();
+
   delay(2000);
   gsm_up();
   ledFlash(50, ERROR_PIN, 3);
@@ -519,11 +586,11 @@ void loop() {
   //TODO: use check_stat and gsm_up here, to report if smthng is down during normal work of module
 
   // delay(2000);
-  // if (DEBUG == true && SoftSerial.available()) {
-  //    Serial.write(SoftSerial.read());
+  // if (DEBUG == true && Serial.available()) {
+  //    Serial.write(Serial.read());
   // }
   // if (Serial.available()) {
-  //   SoftSerial.write(Serial.read());
+  //   Serial.write(Serial.read());
   // }
 }
 
