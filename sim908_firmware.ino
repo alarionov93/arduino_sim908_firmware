@@ -13,7 +13,7 @@ TODO list:
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define SIM_908_PWR_RATE 170
+// #define SIM_908_PWR_RATE 170
 #define SS_RX           2
 #define SS_TX           3
 #define SIG_PIN         9
@@ -40,6 +40,7 @@ uint8_t answer=0;
 char aux_str[100];
 uint8_t MODE_DELAY = 80000;
 int mode = TRACK_MODE;
+int timer_interrupt_count = 0;
 
 char pin[4]="";
 char apn[29]="internet.beeline.ru";
@@ -59,11 +60,10 @@ char course[11]="";
 char chgMode[2]="";
 char percent[4]="";
 char voltage[5]="";
-char batLvlStr[60]="";
+char bat_chg_info[100]="";
 
 
 SoftwareSerial SoftSerial(SS_RX, SS_TX); // RX, TX
-
 
 int8_t sendATcommand(const char* ATcommand, const char* expected_answer, unsigned int timeout){
 
@@ -415,61 +415,56 @@ void getBatChgLvl() {
   
   int8_t counter, answer;
   long previous;
-  uint8_t response[60];
+  char * pch;
   // Clean the input buffer
   while( Serial.available() > 0) Serial.read(); 
   // request Basic string
-  sendATcommand("AT+CBC", "+CBC\r\n\r\n", 2000);
+//  sendATcommand("AT+CBC", "OK", 80);
+  Serial.println("AT+CBC");
 
   counter = 0;
   answer = 0;
-  memset(response, '\0', 100);    // Initialize the string
+  memset(bat_chg_info, '\0', 100);    // Initialize the string
   previous = millis();
-  // this loop waits for the NMEA string
   do {
-      if(Serial.available() != 0){    
-          response[counter] = Serial.read();
-          SoftSerial.write(response[counter]);
-          counter++;
-          // check if the desired answer is in the response of the module
-          // TODO: move this section down
-          if (strstr(response, "OK") != NULL)    
-          {
-              answer = 1;
-          }
-      }
-      // Waits for the asnwer with time out
-  }
-  while((answer == 0) && ((millis() - previous) < 2000));  
+    if(Serial.available() != 0){    
+      SoftSerial.write(Serial.read());
+    }
+  } while ((millis() - previous) < 500);
 
-  response[counter-1] = '\0'; 
+  bat_chg_info[counter-3] = '\0'; 
 //  int x = 0;
 //  while(x < 60) {
-//    if (response[x] != '\0') {
-//      SoftSerial.write(response[x]);
+//    if (bat_chg_info[x] != '\0') {
+//      SoftSerial.write(bat_chg_info[x]);
 //    }
 //  }
+  // pch = strtok (str," ,.-");
+  // while (pch != NULL)
+  // {
+  //   printf ("%s\n",pch);
+  //   pch = strtok (NULL, " ,.-");
+  // }
   
   // Parses the string 
-  strcpy(batLvlStr, response);
-  strtok(response, ",");
+  strtok(bat_chg_info, ",");
   strcpy(chgMode,strtok(NULL, ",")); // Gets battery charging mode (0-NOT charging, 1-charging, 2-charged)
   strcpy(percent,strtok(NULL, ",")); // Gets battery percentage
-  strcpy(voltage,strtok(NULL, ".")); // Gets battery voltage
+  strcpy(voltage,strtok(NULL, "\r")); // Gets battery voltage
   
   return answer;
 }
 
 void sendBatChgLvl() {
-  // to cause interrupt on reciever device, because interrupts by incoming bytes in UART on it are disabled =(
-  digitalWrite(SIG_PIN, HIGH);
-  delay(200);
-  digitalWrite(SIG_PIN, LOW);
+  // // to cause interrupt on reciever device, because interrupts by incoming bytes in UART on it are disabled =(
+  // digitalWrite(SIG_PIN, HIGH);
+  // delay(200);
+  // digitalWrite(SIG_PIN, LOW);
   
-  SoftSerial.print(batLvlStr);
+  // SoftSerial.print(batLvlStr);
   SoftSerial.print(chgMode);
   SoftSerial.print(percent);
-  SoftSerial.print(voltage);
+  // SoftSerial.print(voltage);
 }
 
 void sendCoordinates() {
@@ -535,9 +530,24 @@ void setup() {
   //configure pins
   pinMode(OK_PIN, OUTPUT);
   pinMode(ERROR_PIN, OUTPUT);
+  pinMode(SIG_PIN, OUTPUT);
   pinMode(SWITCH_MODE_PIN, INPUT);
   mode = TRACK_MODE;
-  
+
+  // initialize timer1 
+  // interrupts was not working BECAUSE OF THIS LINE?
+  noInterrupts();           // disable all interrupts
+  TCCR1A = 0;
+  TCCR1B = 0;
+  TCNT1  = 0;
+
+  OCR1A = 31250;            // compare match register 16MHz/256/2Hz
+  TCCR1B |= (1 << WGM12);   // CTC mode
+  TCCR1B |= (1 << CS12);
+  TCCR1B |= (1 << CS10);    // 1024 prescaler 
+  TIMSK1 |= (1 << OCIE1A);  // enable timer compare interrupt
+  interrupts();             // enable all interrupts
+
   //configure serials
   Serial.begin(19200);
   SoftSerial.begin(19200);
@@ -551,9 +561,9 @@ void setup() {
   gprs_up();
   ledFlash(50, ERROR_PIN, 3);
   
-  getBatChgLvl();
-  delay(200);
-  sendBatChgLvl();
+  // getBatChgLvl();
+  // delay(200);
+  // sendBatChgLvl();
   
   delay(100);
   gps_up();
@@ -595,5 +605,30 @@ void loop() {
   // if (Serial.available()) {
   //   Serial.write(Serial.read());
   // }
+}
+
+ISR(TIMER1_COMPA_vect) {
+  noInterrupts();
+  if (timer_interrupt_count == 0 || (timer_interrupt_count % 50) == 0) {
+//    getBatChgLvl();
+  }
+  if ((timer_interrupt_count % 2) == 0)
+  {
+    digitalWrite(SIG_PIN, HIGH);
+//    Serial.println("Bat chg here.");
+    Serial.println("AT+CBC");
+    do {  
+      SoftSerial.write(Serial.read());
+    } while (Serial.available() != 0);
+    sendBatChgLvl();
+//    SoftSerial.println("Bat chg here!");
+  } else {
+    digitalWrite(SIG_PIN, LOW);
+  }
+  timer_interrupt_count++;
+  if (timer_interrupt_count > 1000) {
+    timer_interrupt_count = 0;
+  }
+  interrupts();
 }
 
