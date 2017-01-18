@@ -415,7 +415,7 @@ void getBatChgLvl() {
   
   int8_t counter, answer;
   long previous;
-  uint8_t [60] response;
+  uint8_t response[60];
   // Clean the input buffer
   while( Serial.available() > 0) Serial.read(); 
   // request Basic string
@@ -429,8 +429,10 @@ void getBatChgLvl() {
   do {
       if(Serial.available() != 0){    
           response[counter] = Serial.read();
+          SoftSerial.write(response[counter]);
           counter++;
           // check if the desired answer is in the response of the module
+          // TODO: move this section down
           if (strstr(response, "OK") != NULL)    
           {
               answer = 1;
@@ -441,7 +443,13 @@ void getBatChgLvl() {
   while((answer == 0) && ((millis() - previous) < 2000));  
 
   response[counter-1] = '\0'; 
-
+//  int x = 0;
+//  while(x < 60) {
+//    if (response[x] != '\0') {
+//      SoftSerial.write(response[x]);
+//    }
+//  }
+  
   // Parses the string 
   strcpy(batLvlStr, response);
   strtok(response, ",");
@@ -457,17 +465,11 @@ void sendBatChgLvl() {
   digitalWrite(SIG_PIN, HIGH);
   delay(200);
   digitalWrite(SIG_PIN, LOW);
-
-  // TODO: make this to work!!
+  
   SoftSerial.print(batLvlStr);
   SoftSerial.print(chgMode);
   SoftSerial.print(percent);
   SoftSerial.print(voltage);
-
-  Serial.print(batLvlStr);
-  Serial.print(chgMode);
-  Serial.print(percent);
-  Serial.print(voltage);
 }
 
 void sendCoordinates() {
@@ -534,7 +536,6 @@ void setup() {
   pinMode(OK_PIN, OUTPUT);
   pinMode(ERROR_PIN, OUTPUT);
   pinMode(SWITCH_MODE_PIN, INPUT);
-  pinMode(8, INPUT);
   mode = TRACK_MODE;
   
   //configure serials
@@ -542,9 +543,6 @@ void setup() {
   SoftSerial.begin(19200);
 
   //configure module
-  getBatChgLvl();
-  delay(200);
-  sendBatChgLvl();
 
   delay(2000);
   gsm_up();
@@ -552,6 +550,11 @@ void setup() {
   delay(100);
   gprs_up();
   ledFlash(50, ERROR_PIN, 3);
+  
+  getBatChgLvl();
+  delay(200);
+  sendBatChgLvl();
+  
   delay(100);
   gps_up();
   ledFlash(50, ERROR_PIN, 3);
