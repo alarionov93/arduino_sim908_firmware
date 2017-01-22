@@ -10,25 +10,26 @@ void setup() {
 }
 
 void loop() {
-  char * pch;
-        char mode[4]="";
-        char percent[4]="";
-        char voltage[4]="";
-        memset(buff, '\0', 50);
-        if (SoftSerial.available() > 0) {
-                SoftSerial.readBytes(buff, 40);
-        }
-        if (strstr(buff, "+CBC") != NULL) {
-//                Serial.println(buff);
-            pch = strtok(buff, ":");
-//            Serial.println(pch);
-            strcpy(mode, strtok(NULL, ","));
-            strcpy(percent, strtok(NULL, ","));
-//            strcpy(mode, strtok(NULL, ","));
-//            strcpy(percent, strtok(NULL, ","));
-//            strcpy(voltage, strtok(NULL, "\r"));
-            Serial.println(atoi(mode));
-            Serial.println(atoi(percent));
-//            Serial.println(buff);
-        }
+    char * pch;
+    char mode_str[4]="";
+    char percent_str[4]="";
+    char voltage[4]="";
+    int i = 0;
+    int mode, percent;
+    memset(buff, '\0', 50);
+    if (SoftSerial.available() > 0) {
+        buff[i] = SoftSerial.read();
+	i++;
+    }
+    if (strstr(buff, "+CBC") != NULL) {
+        // if in interrupt, the code below may not work. so, print all buffer to
+	// ensure that data recieved
+	Serial.println(buff);
+	pch = strtok(buff, ":");
+        strcpy(mode, strtok(NULL, ","));
+        strcpy(percent, strtok(NULL, ","));
+        mode = atoi(mode);
+        percent = atoi(percent);
+    }
+    // check chg lvl
 }
