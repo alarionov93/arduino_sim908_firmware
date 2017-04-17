@@ -467,6 +467,25 @@ void sendBatChgLvl() {
   // SoftSerial.print(voltage);
 }
 
+void sendCoordsInSMS() { //with test data now
+  bool success = false;
+  if (atof(longitude) > 0 && atof(latitude) > 0) {
+    char longitude[30]="54.182";
+    char latitude[30]="53.218";
+    char altitude[10]="34.02";
+    char speed[11]="1.4";
+    // answer = sendATcommand(aux_str, "OK", 2000);
+    sprintf(frame, "%s;%s;%s;%s", latitude, longitude, altitude, speed);
+    answer = sendSMS(frame);
+    if (answer == 1)
+    {
+      ledFlash(100, OK_PIN, 2); // TODO: SHOW OK
+    } else {
+      ledFlash(100, ERROR_PIN, 2); // TODO: SHOW OK
+    }
+  }
+}
+
 void sendCoordinates() {
   bool success = false;
   if (atof(longitude) > 0 && atof(latitude) > 0) {
@@ -525,6 +544,83 @@ void sendCoordinates() {
   }
 }
 
+int sendSMS(char sms_text[]) {
+    int8_t answer;
+    char aux_string[30];
+    char phone_number[]="+79655766572";   // ********* is the number to call
+    while( (sendATcommand("AT+CREG?", "+CREG: 0,1", 500) || 
+            sendATcommand("AT+CREG?", "+CREG: 0,5", 500)) == 0 );
+
+    sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
+    
+    sprintf(aux_string,"AT+CMGS=\"%s\"", phone_number);
+    answer = sendATcommand(aux_string, ">", 2000);    // send the SMS number
+    if (answer == 1)
+    {
+        Serial.println(sms_text);
+        Serial.write(0x1A);
+        answer = sendATcommand("", "OK", 20000);
+        if (answer == 1)
+        {
+            SoftSerial.print("Sent ");  
+            return 1;  
+        }
+        else
+        {
+            SoftSerial.print("Error ");
+            return 0;
+        }
+    }
+    else
+    {
+        SoftSerial.print("Error ");
+        SoftSerial.println(answer, DEC);
+        return 0;
+    }
+
+}
+
+char readSMS() {
+  int8_t answer;
+  uint8_t x = 0;
+  char SMS[200];
+  sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
+  sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 1000);    // selects the memory
+
+  answer = sendATcommand("AT+CMGR=1", "+CMGR:", 2000);    // reads the first SMS
+  if (answer == 1)
+  {
+      answer = 0;
+      while(Serial.available() == 0);
+      // this loop reads the data of the SMS
+      do{
+          // if there are data in the UART input buffer, reads it and checks for the asnwer
+          if(Serial.available() > 0){    
+              SMS[x] = Serial.read();
+              x++;
+              // check if the desired answer (OK) is in the response of the module
+              if (strstr(SMS, "OK") != NULL)    
+              {
+                  answer = 1;
+              }
+          }
+      }while(answer == 0);    // Waits for the asnwer with time out
+      
+      SMS[x] = '\0';
+      
+      SoftSerial.print(SMS);
+//      if (strstr(SMS, "GL")) {
+//        // do all actions here
+//      }
+  }
+  else
+  {
+      SoftSerial.print("Error ");
+      SoftSerial.println(answer, DEC);
+  }
+  return SMS;
+}
+
 void setup() {
   
   //configure pins
@@ -557,6 +653,9 @@ void setup() {
   delay(2000);
   gsm_up();
   ledFlash(50, ERROR_PIN, 3);
+  delay(3000);
+  sendCoordsInSMS();
+  delay(3000);
   delay(100);
   gprs_up();
   ledFlash(50, ERROR_PIN, 3);
@@ -571,6 +670,13 @@ void setup() {
 }
 
 void loop() {
+  delay(3000);
+  if (strstr(readSMS(), "GL")) 
+  {
+      // TODO: then set sendCoordsInSMS here!
+      sendCoordsInSMS();
+  }
+  delay(3000);
   button_state = digitalRead(SWITCH_MODE_PIN);
   ledFlash(50, OK_PIN, 20); //before sending coordinates 20 flashes!
 
@@ -589,6 +695,8 @@ void loop() {
   else 
   {
     sleep_module();
+    // TODO: create some waiter for incoming SMS  and if it has come, send coordinates and activate watch mode. 
+    //Else the module should be sleeping< and the controller should be sleeping, too. 
     delay(DEFAULT_WATCH_MODE_DELAY);
     wake_up();
   }
