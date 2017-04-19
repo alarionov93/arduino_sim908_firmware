@@ -549,8 +549,8 @@ int sendSMS(char sms_text[]) {
     int8_t answer;
     char aux_string[30];
     char phone_number[]="+79655766572";   // ********* is the number to call
-    while( (sendATcommand("AT+CREG?", "+CREG: 0,1", 500) || 
-            sendATcommand("AT+CREG?", "+CREG: 0,5", 500)) == 0 );
+    // while( (sendATcommand("AT+CREG?", "+CREG: 0,1", 500) || 
+    //         sendATcommand("AT+CREG?", "+CREG: 0,5", 500)) == 0 );
 
     sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
     
@@ -563,12 +563,14 @@ int sendSMS(char sms_text[]) {
         answer = sendATcommand("", "OK", 20000);
         if (answer == 1)
         {
-            SoftSerial.print("Sent ");  
+            SoftSerial.print("Sent ");
+            ledFlash(50, OK_PIN, 3);  
             return 1;  
         }
         else
         {
             SoftSerial.print("Error ");
+            ledFlash(50, ERROR_PIN, 3);
             return 0;
         }
     }
@@ -576,12 +578,13 @@ int sendSMS(char sms_text[]) {
     {
         SoftSerial.print("Error ");
         SoftSerial.println(answer, DEC);
+        ledFlash(50, ERROR_PIN, 3);
         return 0;
     }
 
 }
 
-char readSMS() {
+char[] readSMS() {
   int8_t answer;
   uint8_t x = 0;
   char SMS[200] = "";
@@ -603,6 +606,7 @@ char readSMS() {
               if (strstr(SMS, "OK") != NULL)    
               {
                   answer = 1;
+                  ledFlash(50, OK_PIN, 3);
               }
           }
       }while(answer == 0);    // Waits for the asnwer with time out
@@ -618,6 +622,7 @@ char readSMS() {
   {
       SoftSerial.print("Error ");
       SoftSerial.println(answer, DEC);
+      ledFlash(50, ERROR_PIN, 3);
   }
   return SMS;
 }
@@ -659,24 +664,15 @@ void setup() {
   gprs_up();
   ledFlash(50, ERROR_PIN, 3);
 
+  // TEST LINES BELOW
   if (strstr(readSMS(), "GL")) // found incoming SMS with coordinates request
   {
       sendCoordsInSMS();
+      digitalWrite(OK_PIN, HIGH); 
       // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
 
-      getCoordinates();
-      sendCoordinates();
-  } else {
-      // send coords every 4th time
-      if (sleep_counter > 4)
-      {
-        // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
-
-        getCoordinates();
-        sendCoordinates();
-        sleep_counter = 0;
-      }
-      sleep_counter++;
+      // getCoordinates();
+      // sendCoordinates();
   }
   
   // getBatChgLvl();
