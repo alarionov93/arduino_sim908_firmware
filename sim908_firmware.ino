@@ -41,6 +41,7 @@ char aux_str[100];
 uint8_t MODE_DELAY = 80000;
 int mode = TRACK_MODE;
 int timer_interrupt_count = 0;
+int sleep_counter = 0;
 
 char pin[4]="";
 char apn[29]="internet.beeline.ru";
@@ -481,7 +482,7 @@ void sendCoordsInSMS() { //with test data now
     {
       ledFlash(100, OK_PIN, 2); // TODO: SHOW OK
     } else {
-      ledFlash(100, ERROR_PIN, 2); // TODO: SHOW OK
+      ledFlash(100, ERROR_PIN, 2); // TODO: SHOW ERR
     }
   }
 }
@@ -583,7 +584,7 @@ int sendSMS(char sms_text[]) {
 char readSMS() {
   int8_t answer;
   uint8_t x = 0;
-  char SMS[200];
+  char SMS[200] = "";
   sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
   sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 1000);    // selects the memory
 
@@ -653,12 +654,30 @@ void setup() {
   delay(2000);
   gsm_up();
   ledFlash(50, ERROR_PIN, 3);
-  delay(3000);
-  sendCoordsInSMS();
-  delay(3000);
+
   delay(100);
   gprs_up();
   ledFlash(50, ERROR_PIN, 3);
+
+  if (strstr(readSMS(), "GL")) // found incoming SMS with coordinates request
+  {
+      sendCoordsInSMS();
+      // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
+
+      getCoordinates();
+      sendCoordinates();
+  } else {
+      // send coords every 4th time
+      if (sleep_counter > 4)
+      {
+        // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
+
+        getCoordinates();
+        sendCoordinates();
+        sleep_counter = 0;
+      }
+      sleep_counter++;
+  }
   
   // getBatChgLvl();
   // delay(200);
@@ -670,18 +689,26 @@ void setup() {
 }
 
 void loop() {
-  delay(3000);
-  if (strstr(readSMS(), "GL")) 
+  if (strstr(readSMS(), "GL")) // found incoming SMS with coordinates request
   {
-      // TODO: then set sendCoordsInSMS here!
       sendCoordsInSMS();
-  }
-  delay(3000);
-  button_state = digitalRead(SWITCH_MODE_PIN);
-  ledFlash(50, OK_PIN, 20); //before sending coordinates 20 flashes!
+      // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
 
-  getCoordinates();
-  sendCoordinates();
+      getCoordinates();
+      sendCoordinates();
+  } else {
+      // send coords every 4th time
+      if (sleep_counter > 4)
+      {
+        // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
+
+        getCoordinates();
+        sendCoordinates();
+        sleep_counter = 0;
+      }
+      sleep_counter++;
+  }
+  button_state = digitalRead(SWITCH_MODE_PIN); // TODO: read "WM" from sms to activate watch mode and "TM" for track mode
   
   if(button_state == HIGH) {
     mode = TRACK_MODE;
@@ -690,14 +717,20 @@ void loop() {
   }
   if (mode == TRACK_MODE)
   {
-    delay(DEFAULT_TRACK_MODE_DELAY); 
+    // delay(DEFAULT_TRACK_MODE_DELAY); 
+    for (int i = 0; i < 5; i++) //sleep for 40 seconds
+    {
+      LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+    }
   }
   else 
   {
     sleep_module();
-    // TODO: create some waiter for incoming SMS  and if it has come, send coordinates and activate watch mode. 
-    //Else the module should be sleeping< and the controller should be sleeping, too. 
-    delay(DEFAULT_WATCH_MODE_DELAY);
+    // delay(DEFAULT_WATCH_MODE_DELAY);
+    for (int i = 0; i < 100; i++) //sleep for 800 seconds
+    {
+      LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+    }
     wake_up();
   }
 
@@ -717,6 +750,7 @@ void loop() {
 
 ISR(TIMER1_COMPA_vect) {
   noInterrupts();
+  ledFlash(30, ERROR_PIN, 4);
   if (timer_interrupt_count == 0 || (timer_interrupt_count % 50) == 0) {
 //    getBatChgLvl();
   }
