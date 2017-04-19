@@ -1,3 +1,5 @@
+#include <LowPower.h>
+
 /**
 SIM 908 MODULE ARDUINO FIRMWARE
 //make short description
@@ -585,7 +587,7 @@ int sendSMS(char sms_text[]) {
 
 }
 
-char[] readSMS() {
+char readSMS() {
   int8_t answer;
   uint8_t x = 0;
   char SMS[200] = "";
