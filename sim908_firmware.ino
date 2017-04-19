@@ -758,7 +758,7 @@ ISR(TIMER1_COMPA_vect) {
   // TODO: after, uncomment this condition
   // if (is_sleep_in_watch_mode == 1)
   // {
-    ledFlash(30, ERROR_PIN, 4);
+    //ledFlash(30, ERROR_PIN, 4);
   // }
   if (timer_interrupt_count == 0 || (timer_interrupt_count % 50) == 0) {
 //    getBatChgLvl();
