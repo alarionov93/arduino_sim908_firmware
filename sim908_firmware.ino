@@ -42,6 +42,7 @@ uint8_t MODE_DELAY = 80000;
 int mode = TRACK_MODE;
 int timer_interrupt_count = 0;
 int sleep_counter = 0;
+int is_sleep_in_watch_mode = 0;
 
 char pin[4]="";
 char apn[29]="internet.beeline.ru";
@@ -594,6 +595,7 @@ char[] readSMS() {
   answer = sendATcommand("AT+CMGR=1", "+CMGR:", 2000);    // reads the first SMS
   if (answer == 1)
   {
+      ledFlash(100, OK_PIN, 6);
       answer = 0;
       while(Serial.available() == 0);
       // this loop reads the data of the SMS
@@ -606,7 +608,7 @@ char[] readSMS() {
               if (strstr(SMS, "OK") != NULL)    
               {
                   answer = 1;
-                  ledFlash(50, OK_PIN, 3);
+                  ledFlash(100, OK_PIN, 15);
               }
           }
       }while(answer == 0);    // Waits for the asnwer with time out
@@ -622,7 +624,7 @@ char[] readSMS() {
   {
       SoftSerial.print("Error ");
       SoftSerial.println(answer, DEC);
-      ledFlash(50, ERROR_PIN, 3);
+      ledFlash(100, ERROR_PIN, 10);
   }
   return SMS;
 }
@@ -658,21 +660,24 @@ void setup() {
 
   delay(2000);
   gsm_up();
-  ledFlash(50, ERROR_PIN, 3);
+  // ledFlash(50, ERROR_PIN, 3);
 
   delay(100);
   gprs_up();
-  ledFlash(50, ERROR_PIN, 3);
+  // ledFlash(50, ERROR_PIN, 3);
 
   // TEST LINES BELOW
   if (strstr(readSMS(), "GL")) // found incoming SMS with coordinates request
   {
-      sendCoordsInSMS();
+
       digitalWrite(OK_PIN, HIGH); 
+      sendCoordsInSMS();
       // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
 
       // getCoordinates();
       // sendCoordinates();
+  } else {
+      digitalWrite(ERROR_PIN, HIGH); 
   }
   
   // getBatChgLvl();
@@ -681,7 +686,7 @@ void setup() {
   
   delay(100);
   gps_up();
-  ledFlash(50, ERROR_PIN, 3);
+  // ledFlash(50, ERROR_PIN, 3);
 }
 
 void loop() {
@@ -723,10 +728,12 @@ void loop() {
   {
     sleep_module();
     // delay(DEFAULT_WATCH_MODE_DELAY);
+    is_sleep_in_watch_mode = 1;
     for (int i = 0; i < 100; i++) //sleep for 800 seconds
     {
       LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
     }
+    is_sleep_in_watch_mode = 0;
     wake_up();
   }
 
@@ -746,7 +753,11 @@ void loop() {
 
 ISR(TIMER1_COMPA_vect) {
   noInterrupts();
-  ledFlash(30, ERROR_PIN, 4);
+  // TODO: after, uncomment this condition
+  // if (is_sleep_in_watch_mode == 1)
+  // {
+    ledFlash(30, ERROR_PIN, 4);
+  // }
   if (timer_interrupt_count == 0 || (timer_interrupt_count % 50) == 0) {
 //    getBatChgLvl();
   }
