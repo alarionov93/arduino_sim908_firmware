@@ -595,7 +595,7 @@ void getLastSMSIndex() {
   uint8_t x = 0;
   sendATcommand("AT+CMGF=1", "OK", 500);    // sets the SMS mode to text
   sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 500); // choose sim card memory
-  sendATcommand("AT+CMGL=\"REC UNREAD\", 0", "OK:", 500); // choose unread sms
+  sendATcommand("AT+CMGL=\"REC UNREAD\", 0", "OK", 500); // choose unread sms
 
   memset(buff, '\0', 50);
     
