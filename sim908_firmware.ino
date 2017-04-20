@@ -311,11 +311,13 @@ void gsm_up() {
     // }
   }
   if (pin && reg) {
+    SoftSerial.write("GSM is up");
     digitalWrite(OK_PIN, HIGH); // TODO: SHOW OK
     delay(2000);
     digitalWrite(OK_PIN, LOW);
   }
   if (pin) {
+    SoftSerial.write("Pin ok, but not registered in the network.");
     // ledFlash(100, ERROR_PIN, 5);
   }
 }
@@ -323,7 +325,8 @@ void gsm_up() {
 void gprs_up() {
   uint8_t gprs = 0;
   uint8_t stat_gprs = 0;
-
+  char tmp[10] = ""
+  int try = 1;
     // sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000);
     // stat_gprs = sendATcommand("AT+SAPBR=4,1", "internet.beeline.ru", 2000);
     // if(stat_gprs == 1) {
@@ -331,6 +334,7 @@ void gprs_up() {
     //   ledFlash(500, ERROR_PIN, 3);
     // }
     ledFlash(200, OK_PIN, 5);
+    SoftSerial.write("Setting APN");
     sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000); //for sim with 963016...0!
 
     // sendATcommand("AT+SAPBR=0,1", "OK", 2000); //always turn gprs off - to avoid if AT+SAPBR=1,1 returning ERROR
@@ -343,10 +347,13 @@ void gprs_up() {
     // sendATcommand("AT+SAPBR=3,1,\"PWD\",\"beeline\"", "OK", 2000);
 
     // gets the GPRS bearer
+    SoftSerial.write("Getting GPRS bearer");
     gprs = sendATcommand("AT+SAPBR=1,1", "OK", 45000); //30 seconds is the minimal value!
     while (gprs == 0)
     {
+      try++;
       ledFlash(200, OK_PIN, 5); //TODO: SHOW 
+      SoftSerial.println(sprintf(tmp, "Set APN and get bearer: try number %d.", try));
       sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000);
       sendATcommand("AT+SAPBR=0,1", "OK", 2000); //always turn gprs off - to avoid if AT+SAPBR=1,1 returning ERROR
 
@@ -359,6 +366,7 @@ void gprs_up() {
       gprs = sendATcommand("AT+SAPBR=1,1", "OK", 40000);
     }
     if (gprs == 1) {
+      SoftSerial.write("GPRS up");
       digitalWrite(OK_PIN, HIGH); // TODO: SHOW OK
       delay(2000);
       digitalWrite(OK_PIN, LOW);
@@ -742,19 +750,26 @@ void setup() {
   //configure module
 
   delay(2000);
+  SoftSerial.println("Configure module: GSM.");
   gsm_up();
+  SoftSerial.println("Configure module: GSM is set.");
   // ledFlash(50, ERROR_PIN, 3);
 
   delay(100);
+  SoftSerial.println("Configure module: GPRS.");
   gprs_up();
+  SoftSerial.println("Configure module: GPRS is set.");
   // ledFlash(50, ERROR_PIN, 3);
 
   // TEST LINES BELOW
+  SoftSerial.println("Configure module: Test SMS msg.");
   getLastSMSIndex();
+  SoftSerial.println("Configure module: Test SMS got SMS idx.");
   readSMS(sms_idx);
+  SoftSerial.println("Configure module: Test SMS read SMS here.");
   if (strstr(SMS, "GL") != NULL) // found incoming SMS with coordinates request
   {
-
+      SoftSerial.println("Configure module: Test SMS found target sequence.");
       digitalWrite(OK_PIN, HIGH); 
       // sendCoordsInSMS();
       // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
@@ -762,6 +777,7 @@ void setup() {
       // getCoordinates();
       // sendCoordinates();
   } else {
+      SoftSerial.println("Configure module: Test SMS target sequence NOT found.");
       digitalWrite(ERROR_PIN, HIGH); 
   }
   
