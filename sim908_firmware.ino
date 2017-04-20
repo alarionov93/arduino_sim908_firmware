@@ -608,12 +608,16 @@ void getLastSMSIndex() {
   
   Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
 
-  while (Serial.available() > 0) 
-  {
+  while (Serial.available() == 0);
+  do {
       data = Serial.read();
       buff[i] = data;
       i++;
-  }
+      if (strstr(buff, "OK"))
+      {
+        answer = 1;
+      }
+  } while (answer == 0);
 
   SoftSerial.println(buff);
 
@@ -659,6 +663,8 @@ void getLastSMSIndex() {
 }
 
 void readSMS(int index) {
+  SoftSerial.print("\tIndex recieved:");
+  SoftSerial.println(index);
   if (index > 0)
   {
     memset(SMS, '\0', 60);
@@ -688,7 +694,7 @@ void readSMS(int index) {
                     ledFlash(100, OK_PIN, 15);
                 }
             }
-        }while(answer == 0);    // Waits for the asnwer with time out
+        } while(answer == 0);    // Waits for the asnwer with time out
         
         SMS[x] = '\0';
         
