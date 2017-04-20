@@ -591,7 +591,7 @@ int sendSMS(char sms_text[]) {
 
 void getLastSMSIndex() {
   char buff[100]="";
-  int8_t answer;
+  int8_t answer = 0;
   uint8_t x = 0;
   sendATcommand("AT+CMGF=1", "OK", 800);    // sets the SMS mode to text
   sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 800); // choose sim card memory
@@ -599,7 +599,6 @@ void getLastSMSIndex() {
 
   memset(buff, '\0', 100);
     
-  uint8_t data;
   int i = 0;
 
   char * pch;
@@ -610,13 +609,16 @@ void getLastSMSIndex() {
 
   while (Serial.available() == 0);
   do {
-      data = Serial.read();
-      buff[i] = data;
+    if(Serial.available() > 0)
+    {
+      buff[i] = Serial.read();
+      SoftSerial.write(buff[i]);
       i++;
       if (strstr(buff, "OK"))
       {
         answer = 1;
       }
+    }
   } while (answer == 0);
 
   SoftSerial.println(buff);
