@@ -66,6 +66,7 @@ char percent[4]="";
 char voltage[5]="";
 char bat_chg_info[100]="";
 char SMS[200] = "";
+uint8_t sms_idx = 0;
 
 
 SoftwareSerial SoftSerial(SS_RX, SS_TX); // RX, TX
@@ -589,15 +590,14 @@ int sendSMS(char sms_text[]) {
 }
 
 void getLastSMSIndex() {
-  char buff[200]="";
+  char buff[100]="";
   int8_t answer;
-  uint8_t sms_idx=0;
   uint8_t x = 0;
-  sendATcommand("AT+CMGF=1", "OK", 500);    // sets the SMS mode to text
-  sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 500); // choose sim card memory
-  sendATcommand("AT+CMGL=\"REC UNREAD\", 0", "OK", 500); // choose unread sms
+  sendATcommand("AT+CMGF=1", "OK", 800);    // sets the SMS mode to text
+  sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 800); // choose sim card memory
+  
 
-  memset(buff, '\0', 50);
+  memset(buff, '\0', 100);
     
   uint8_t data;
   int i = 0;
@@ -606,7 +606,7 @@ void getLastSMSIndex() {
   char sms_idx_str[5]="";
   char sms_from_str[12]="";
   
-  Serial.println("AT+CMGL");
+  Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
 
   while (Serial.available() > 0) 
   {
@@ -630,7 +630,7 @@ void getLastSMSIndex() {
   } 
   else 
   {
-      SoftSerial.println("ERROR GETTING LAST SMS INDEX.");
+      SoftSerial.println("ERROR GETTING LAST SMS INDEX OR NO UNREAD MESSAGES.");
   }
 
   // if (answer == 1) 
@@ -657,46 +657,54 @@ void getLastSMSIndex() {
 }
 
 void readSMS(int index) {
-  int8_t answer;
-  uint8_t x = 0;
-  char cmd[10] = "";
-  sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
-  sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 1000);    // selects the memory
-  //TODO: read the LAST (!!!) SMS message, NOT FIRST !!!
-  sprintf(cmd, "AT+CMGR=%d", index);
-  answer = sendATcommand(cmd, "+CMGR:", 2000);    // reads the first SMS
-  if (answer == 1)
+  if (index > 0)
   {
-      ledFlash(100, OK_PIN, 6);
-      answer = 0;
-      while(Serial.available() == 0);
-      // this loop reads the data of the SMS
-      do{
-          // if there are data in the UART input buffer, reads it and checks for the asnwer
-          if(Serial.available() > 0){    
-              SMS[x] = Serial.read();
-              x++;
-              // check if the desired answer (OK) is in the response of the module
-              if (strstr(SMS, "OK") != NULL)    
-              {
-                  answer = 1;
-                  ledFlash(100, OK_PIN, 15);
-              }
-          }
-      }while(answer == 0);    // Waits for the asnwer with time out
-      
-      SMS[x] = '\0';
-      
-      SoftSerial.print(SMS);
-//      if (strstr(SMS, "GL")) {
-//        // do all actions here
-//      }
+    int8_t answer;
+    uint8_t x = 0;
+    char cmd[10] = "";
+    sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
+    sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 1000);    // selects the memory
+    //TODO: read the LAST (!!!) SMS message, NOT FIRST !!!
+    sprintf(cmd, "AT+CMGR=%d", index);
+    answer = sendATcommand(cmd, "+CMGR:", 2000);    // reads the first SMS
+    if (answer == 1)
+    {
+        ledFlash(100, OK_PIN, 6);
+        answer = 0;
+        while(Serial.available() == 0);
+        // this loop reads the data of the SMS
+        do{
+            // if there are data in the UART input buffer, reads it and checks for the asnwer
+            if(Serial.available() > 0){    
+                SMS[x] = Serial.read();
+                x++;
+                // check if the desired answer (OK) is in the response of the module
+                if (strstr(SMS, "OK") != NULL)    
+                {
+                    answer = 1;
+                    ledFlash(100, OK_PIN, 15);
+                }
+            }
+        }while(answer == 0);    // Waits for the asnwer with time out
+        
+        SMS[x] = '\0';
+        
+        SoftSerial.print(SMS);
+
+        memset(cmd, '\0', 10);
+        sprintf(cmd, "AT+CMGD=%d", index); // delete read message
+        sendATcommand(cmd, "OK", 1000);
+    }
+    else
+    {
+        SoftSerial.print("Error ");
+        SoftSerial.println(answer, DEC);
+        ledFlash(100, ERROR_PIN, 10);
+    }
   }
-  else
+  else 
   {
-      SoftSerial.print("Error ");
-      SoftSerial.println(answer, DEC);
-      ledFlash(100, ERROR_PIN, 10);
+    SoftSerial.println("NO LAST SMS INDEX FOUND.");
   }
 }
 
