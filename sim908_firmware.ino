@@ -480,121 +480,121 @@ void sendBatChgLvl() {
   // SoftSerial.print(voltage);
 }
 
-void sendCoordsInSMS() { //with test data now
-  bool success = false;
-  if (atof(longitude) > 0 && atof(latitude) > 0) {
-    char longitude[30]="54.182";
-    char latitude[30]="53.218";
-    char altitude[10]="34.02";
-    char speed[11]="1.4";
-    // answer = sendATcommand(aux_str, "OK", 2000);
-    sprintf(frame, "%s;%s;%s;%s", latitude, longitude, altitude, speed);
-    answer = sendSMS(frame);
-    if (answer == 1)
-    {
-      ledFlash(100, OK_PIN, 2); // TODO: SHOW OK
-    } else {
-      ledFlash(100, ERROR_PIN, 2); // TODO: SHOW ERR
-    }
-  }
-}
+// void sendCoordsInSMS() { //with test data now
+//   bool success = false;
+//   if (atof(longitude) > 0 && atof(latitude) > 0) {
+//     char longitude[30]="54.182";
+//     char latitude[30]="53.218";
+//     char altitude[10]="34.02";
+//     char speed[11]="1.4";
+//     // answer = sendATcommand(aux_str, "OK", 2000);
+//     sprintf(frame, "%s;%s;%s;%s", latitude, longitude, altitude, speed);
+//     answer = sendSMS(frame);
+//     if (answer == 1)
+//     {
+//       ledFlash(100, OK_PIN, 2); // TODO: SHOW OK
+//     } else {
+//       ledFlash(100, ERROR_PIN, 2); // TODO: SHOW ERR
+//     }
+//   }
+// }
 
-void sendCoordinates() {
-  bool success = false;
-  if (atof(longitude) > 0 && atof(latitude) > 0) {
-    answer = sendATcommand("AT+HTTPINIT", "OK", 5000);
-      if (answer == 1)
-      {
-      // Sets CID parameter
-        answer = sendATcommand("AT+HTTPPARA=\"CID\",1", "OK", 2000);
-        if (answer == 1)
-        {
-          // Sets url 
-          sprintf(aux_str, "AT+HTTPPARA=\"URL\",\"%s", url);
-          Serial.print(aux_str);
-          // answer = sendATcommand(aux_str, "OK", 2000);
-          sprintf(frame, "?lat=%s&lon=%s&alt=%s&speed=%s&device=%s", latitude, longitude, altitude, speed, DEVICE_ID);
-          Serial.print(frame);
-          answer = sendATcommand("\"", "OK", 5000);
-          if (answer == 1)
-          {
-            answer = sendATcommand("AT+HTTPPARA=\"CONTENT\",\"application/x-www-form-urlencoded\"", "OK", 2000);
-            if(answer == 1) {
-              // Starts GET action
-              answer = sendATcommand("AT+HTTPACTION=0", "+HTTPACTION:0,200", 10000);
-              if (answer == 1) {
-                success = true;
-              } else {
-                Serial.println(F("Error getting url")); // TODO: SHOW ERR
-                //here if url is not available, set old url a-larionov.ru:2222/data_parser.php
-                ledFlash(1000, ERROR_PIN, 10); //this is set to understand that something went wrong on data sending - the last step!
-              }
-            } else { //TODO: ALL HERE SHOW ERR
-              Serial.println(F("Error setting cont type"));
-              ledFlash(1000, ERROR_PIN, 10);
-            }
-          } else {
-            Serial.println(F("Error setting the url"));
-            ledFlash(1000, ERROR_PIN, 10);
-          }
-        } else {
-          Serial.println(F("Error setting the CID"));
-          ledFlash(1000, ERROR_PIN, 10);
-        }    
-      } else {
-        Serial.println(F("Error initializating"));
-        ledFlash(1000, ERROR_PIN, 10);
-      }
-    sendATcommand("AT+HTTPTERM", "OK", 5000);
-    if (success == true)
-    {
-      ledFlash(100, OK_PIN, 2); // TODO: SHOW OK
-    }
-  } else {
-    // report missing location HERE
-    report_err(1, "Location_is_lost");
-    ledFlash(100, OK_PIN, 3);// TODO: SHOW near OK
-  }
-}
+// void sendCoordinates() {
+//   bool success = false;
+//   if (atof(longitude) > 0 && atof(latitude) > 0) {
+//     answer = sendATcommand("AT+HTTPINIT", "OK", 5000);
+//       if (answer == 1)
+//       {
+//       // Sets CID parameter
+//         answer = sendATcommand("AT+HTTPPARA=\"CID\",1", "OK", 2000);
+//         if (answer == 1)
+//         {
+//           // Sets url 
+//           sprintf(aux_str, "AT+HTTPPARA=\"URL\",\"%s", url);
+//           Serial.print(aux_str);
+//           // answer = sendATcommand(aux_str, "OK", 2000);
+//           sprintf(frame, "?lat=%s&lon=%s&alt=%s&speed=%s&device=%s", latitude, longitude, altitude, speed, DEVICE_ID);
+//           Serial.print(frame);
+//           answer = sendATcommand("\"", "OK", 5000);
+//           if (answer == 1)
+//           {
+//             answer = sendATcommand("AT+HTTPPARA=\"CONTENT\",\"application/x-www-form-urlencoded\"", "OK", 2000);
+//             if(answer == 1) {
+//               // Starts GET action
+//               answer = sendATcommand("AT+HTTPACTION=0", "+HTTPACTION:0,200", 10000);
+//               if (answer == 1) {
+//                 success = true;
+//               } else {
+//                 Serial.println(F("Error getting url")); // TODO: SHOW ERR
+//                 //here if url is not available, set old url a-larionov.ru:2222/data_parser.php
+//                 ledFlash(1000, ERROR_PIN, 10); //this is set to understand that something went wrong on data sending - the last step!
+//               }
+//             } else { //TODO: ALL HERE SHOW ERR
+//               Serial.println(F("Error setting cont type"));
+//               ledFlash(1000, ERROR_PIN, 10);
+//             }
+//           } else {
+//             Serial.println(F("Error setting the url"));
+//             ledFlash(1000, ERROR_PIN, 10);
+//           }
+//         } else {
+//           Serial.println(F("Error setting the CID"));
+//           ledFlash(1000, ERROR_PIN, 10);
+//         }    
+//       } else {
+//         Serial.println(F("Error initializating"));
+//         ledFlash(1000, ERROR_PIN, 10);
+//       }
+//     sendATcommand("AT+HTTPTERM", "OK", 5000);
+//     if (success == true)
+//     {
+//       ledFlash(100, OK_PIN, 2); // TODO: SHOW OK
+//     }
+//   } else {
+//     // report missing location HERE
+//     report_err(1, "Location_is_lost");
+//     ledFlash(100, OK_PIN, 3);// TODO: SHOW near OK
+//   }
+// }
 
-int sendSMS(char sms_text[]) {
-    int8_t answer;
-    char aux_string[30];
-    char phone_number[]="+79655766572";   // ********* is the number to call
-    // while( (sendATcommand("AT+CREG?", "+CREG: 0,1", 500) || 
-    //         sendATcommand("AT+CREG?", "+CREG: 0,5", 500)) == 0 );
+// int sendSMS(char sms_text[]) {
+//     int8_t answer;
+//     char aux_string[30];
+//     char phone_number[]="+79655766572";   // ********* is the number to call
+//     // while( (sendATcommand("AT+CREG?", "+CREG: 0,1", 500) || 
+//     //         sendATcommand("AT+CREG?", "+CREG: 0,5", 500)) == 0 );
 
-    sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
+//     sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
     
-    sprintf(aux_string,"AT+CMGS=\"%s\"", phone_number);
-    answer = sendATcommand(aux_string, ">", 2000);    // send the SMS number
-    if (answer == 1)
-    {
-        Serial.println(sms_text);
-        Serial.write(0x1A);
-        answer = sendATcommand("", "OK", 20000);
-        if (answer == 1)
-        {
-            SoftSerial.print("Sent ");
-            ledFlash(50, OK_PIN, 3);  
-            return 1;  
-        }
-        else
-        {
-            SoftSerial.print("Error ");
-            ledFlash(50, ERROR_PIN, 3);
-            return 0;
-        }
-    }
-    else
-    {
-        SoftSerial.print("Error ");
-        SoftSerial.println(answer, DEC);
-        ledFlash(50, ERROR_PIN, 3);
-        return 0;
-    }
+//     sprintf(aux_string,"AT+CMGS=\"%s\"", phone_number);
+//     answer = sendATcommand(aux_string, ">", 2000);    // send the SMS number
+//     if (answer == 1)
+//     {
+//         Serial.println(sms_text);
+//         Serial.write(0x1A);
+//         answer = sendATcommand("", "OK", 20000);
+//         if (answer == 1)
+//         {
+//             SoftSerial.print("Sent ");
+//             ledFlash(50, OK_PIN, 3);  
+//             return 1;  
+//         }
+//         else
+//         {
+//             SoftSerial.print("Error ");
+//             ledFlash(50, ERROR_PIN, 3);
+//             return 0;
+//         }
+//     }
+//     else
+//     {
+//         SoftSerial.print("Error ");
+//         SoftSerial.println(answer, DEC);
+//         ledFlash(50, ERROR_PIN, 3);
+//         return 0;
+//     }
 
-}
+// }
 
 void getLastSMSIndex() {
   char buff[100]="";
@@ -792,11 +792,11 @@ void setup() {
 void loop() {
   if (strstr(SMS, "GL") != NULL) // found incoming SMS with coordinates request
   {
-      sendCoordsInSMS();
+      // sendCoordsInSMS();
       // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
 
       getCoordinates();
-      sendCoordinates();
+      // sendCoordinates();
   } else {
       // send coords every 4th time
       if (sleep_counter > 4)
@@ -804,7 +804,7 @@ void loop() {
         // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
 
         getCoordinates();
-        sendCoordinates();
+        // sendCoordinates();
         sleep_counter = 0;
       }
       sleep_counter++;
