@@ -65,6 +65,7 @@ char chgMode[2]="";
 char percent[4]="";
 char voltage[5]="";
 char bat_chg_info[100]="";
+char SMS[200] = "";
 
 
 SoftwareSerial SoftSerial(SS_RX, SS_TX); // RX, TX
@@ -587,14 +588,83 @@ int sendSMS(char sms_text[]) {
 
 }
 
-char readSMS() {
+void getLastSMSIndex() {
+  char buff[200]="";
+  int8_t answer;
+  uint8_t sms_idx=0;
+  uint8_t x = 0;
+  sendATcommand("AT+CMGF=1", "OK", 500);    // sets the SMS mode to text
+  sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 500); // choose sim card memory
+  sendATcommand("AT+CMGL=\"REC UNREAD\", 0", "OK:", 500); // choose unread sms
+
+  memset(buff, '\0', 50);
+    
+  uint8_t data;
+  int i = 0;
+
+  char * pch;
+  char sms_idx_str[5]="";
+  char sms_from_str[12]="";
+  
+  Serial.println("AT+CMGL");
+
+  while (Serial.available() > 0) 
+  {
+      data = Serial.read();
+      buff[i] = data;
+      i++;
+  }
+
+  if (strstr(buff, "+CMGL:") != NULL) 
+  {
+      pch = strtok(buff, ":");
+      strcpy(sms_idx_str, strtok(NULL, ","));
+      strcpy(sms_from_str, strtok(NULL, ","));
+      sms_idx = atoi(sms_idx_str);
+      ledFlash(50, OK_PIN, 10);
+      SoftSerial.println(buff);
+      SoftSerial.print("SMS IDX: ");
+      SoftSerial.print(sms_idx);
+      SoftSerial.print("SMS FROM: ");
+      SoftSerial.print(sms_from_str);
+  } 
+  else 
+  {
+      SoftSerial.println("ERROR GETTING LAST SMS INDEX.");
+  }
+
+  // if (answer == 1) 
+  // {
+  //     answer = 0;
+  //     while(Serial.available() == 0);
+  //     // this loop reads the data of the SMS
+  //     do{
+  //         // if there are data in the UART input buffer, reads it and checks for the asnwer
+  //         if(Serial.available() > 0){    
+  //             buffer[x] = Serial.read();
+  //             x++;
+  //             // check if the desired answer (OK) is in the response of the module
+              
+  //         }
+  //     }while(answer == 0);    // Waits for the asnwer with time out
+      
+  //     buffer[x] = '\0';
+      
+  //     SoftSerial.print(buffer);
+  // } else {
+  //     SoftSerial.println("ERROR OR NO NEW MESSAGES");
+  // }
+}
+
+void readSMS(int index) {
   int8_t answer;
   uint8_t x = 0;
-  char SMS[200] = "";
+  char cmd[10] = "";
   sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
   sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 1000);    // selects the memory
-
-  answer = sendATcommand("AT+CMGR=1", "+CMGR:", 2000);    // reads the first SMS
+  //TODO: read the LAST (!!!) SMS message, NOT FIRST !!!
+  sprintf(cmd, "AT+CMGR=%d", index);
+  answer = sendATcommand(cmd, "+CMGR:", 2000);    // reads the first SMS
   if (answer == 1)
   {
       ledFlash(100, OK_PIN, 6);
@@ -628,7 +698,6 @@ char readSMS() {
       SoftSerial.println(answer, DEC);
       ledFlash(100, ERROR_PIN, 10);
   }
-  return SMS;
 }
 
 void setup() {
@@ -669,7 +738,7 @@ void setup() {
   // ledFlash(50, ERROR_PIN, 3);
 
   // TEST LINES BELOW
-  if (strstr(readSMS(), "GL")) // found incoming SMS with coordinates request
+  if (strstr(SMS, "GL") != NULL) // found incoming SMS with coordinates request
   {
 
       digitalWrite(OK_PIN, HIGH); 
@@ -692,7 +761,7 @@ void setup() {
 }
 
 void loop() {
-  if (strstr(readSMS(), "GL")) // found incoming SMS with coordinates request
+  if (strstr(SMS, "GL") != NULL) // found incoming SMS with coordinates request
   {
       sendCoordsInSMS();
       // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
@@ -721,6 +790,7 @@ void loop() {
   if (mode == TRACK_MODE)
   {
     // delay(DEFAULT_TRACK_MODE_DELAY); 
+    // TODO: test working of powerDown after solving SMS, GPRS and read messages problems !!!
     for (int i = 0; i < 5; i++) //sleep for 40 seconds
     {
       LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
