@@ -615,7 +615,9 @@ void getLastSMSIndex() {
       i++;
   }
 
-  if (strstr(buff, "+CMGL:") != NULL) 
+  SoftSerial.println(buff);
+
+  if (strstr(buff, "+CMGL") != NULL) 
   {
       pch = strtok(buff, ":");
       strcpy(sms_idx_str, strtok(NULL, ","));
