@@ -65,7 +65,7 @@ char chgMode[2]="";
 char percent[4]="";
 char voltage[5]="";
 char bat_chg_info[100]="";
-char SMS[200] = "";
+char SMS[60] = "";
 uint8_t sms_idx = 0;
 
 
@@ -659,6 +659,7 @@ void getLastSMSIndex() {
 void readSMS(int index) {
   if (index > 0)
   {
+    memset(SMS, '\0', 60);
     int8_t answer;
     uint8_t x = 0;
     char cmd[10] = "";
@@ -746,11 +747,13 @@ void setup() {
   // ledFlash(50, ERROR_PIN, 3);
 
   // TEST LINES BELOW
+  getLastSMSIndex();
+  readSMS(sms_idx);
   if (strstr(SMS, "GL") != NULL) // found incoming SMS with coordinates request
   {
 
       digitalWrite(OK_PIN, HIGH); 
-      sendCoordsInSMS();
+      // sendCoordsInSMS();
       // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
 
       // getCoordinates();
