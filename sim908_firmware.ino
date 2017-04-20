@@ -605,21 +605,14 @@ void getLastSMSIndex() {
   char sms_idx_str[5]="";
   char sms_from_str[12]="";
   
-  Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
+  Serial.print("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
 
-  while (Serial.available() == 0);
-  do {
-    if(Serial.available() > 0)
-    {
-      buff[i] = Serial.read();
-      SoftSerial.write(buff[i]);
-      i++;
-      if (strstr(buff, "OK"))
-      {
-        answer = 1;
-      }
-    }
-  } while (answer == 0);
+  if(Serial.available() > 0)
+  {
+    buff[i] = Serial.read();
+    SoftSerial.write(buff[i]);
+    i++;
+  }
 
   SoftSerial.println(buff);
 
