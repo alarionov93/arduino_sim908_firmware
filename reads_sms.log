@@ -1,0 +1,55 @@
+\0x00,1
+
+OK
+
+\0xff "REC READ","+79655766572","","16/07/30,03:06:57+20"
+The testiAT+CBC
+
++CBC: 0,91,4077
+
+OK\0xff\0xffAT+CBC
+
++CBC: 0,87,4024
+
+OK
+\0xff,1
+
+OK
+\0xff\0xff "REC READ","+79655766572","","16/07/30,03:06:57+20"
+The testi
++CREG: 1
+AT+CBC
+
++CBC: 0,88,4037
+
+OK\0xffAT+CBC
+
++CBC: 0,88,4031
+
+OK
+AT+CBC
+
++CBC: 0,88,4031
+
+OK
+\0xffAT+CBC
+
++CBC: 0,88,4031
+
+OK
+AT+CBC
+
++CBC: 0,88,4031
+
+OK
+\0xffAT+CBC
+
++CBC: 0,88,4031
+
+OK
+AT+CBC
+
++CBC: 0,88,4031
+
+OK
+\0xff

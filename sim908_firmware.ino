@@ -40,7 +40,7 @@ int timer = 0;
 bool DEBUG = true;
 uint8_t answer=0;
 char aux_str[100];
-uint8_t MODE_DELAY = 80000;
+//uint8_t MODE_DELAY = 80000;
 int mode = TRACK_MODE;
 int timer_interrupt_count = 0;
 int sleep_counter = 0;
@@ -51,7 +51,6 @@ char apn[29]="internet.beeline.ru";
 char user_name[17]="beeline";
 char password[17]="beeline";
 char url[50]="http://a-larionov.ru:5000/gps";
-char url_old[50]="http://a-larionov.ru:5000/data_parser.php";
 char error_url[40]="http://a-larionov.ru:5000/err";
 char longitude[30]="";
 char latitude[30]="";
@@ -65,7 +64,7 @@ char chgMode[2]="";
 char percent[4]="";
 char voltage[5]="";
 char bat_chg_info[100]="";
-char SMS[60] = "";
+char SMS[50] = "";
 uint8_t sms_idx = 0;
 
 
@@ -325,8 +324,8 @@ void gsm_up() {
 void gprs_up() {
   uint8_t gprs = 0;
   uint8_t stat_gprs = 0;
-  char tmp[10] = ""
-  int try = 1;
+  char tmp[10] = "";
+  int tr = 1;
     // sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000);
     // stat_gprs = sendATcommand("AT+SAPBR=4,1", "internet.beeline.ru", 2000);
     // if(stat_gprs == 1) {
@@ -351,9 +350,9 @@ void gprs_up() {
     gprs = sendATcommand("AT+SAPBR=1,1", "OK", 45000); //30 seconds is the minimal value!
     while (gprs == 0)
     {
-      try++;
+      tr++;
       ledFlash(200, OK_PIN, 5); //TODO: SHOW 
-      SoftSerial.println(sprintf(tmp, "Set APN and get bearer: try number %d.", try));
+      SoftSerial.println(sprintf(tmp, "Set APN:%d.", tr));
       sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000);
       sendATcommand("AT+SAPBR=0,1", "OK", 2000); //always turn gprs off - to avoid if AT+SAPBR=1,1 returning ERROR
 
