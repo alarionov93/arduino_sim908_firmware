@@ -612,7 +612,7 @@ void getLastSMSIndex() {
   char sms_idx_str[5]="";
   char sms_from_str[12]="";
   
-  Serial.println("AT+CMGL=\"ALL\", 0"); // choose unread sms
+  Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
 
   previous = millis();
   answer = 0;
