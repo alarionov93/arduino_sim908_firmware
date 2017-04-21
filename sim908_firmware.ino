@@ -56,14 +56,14 @@ char longitude[30]="";
 char latitude[30]="";
 char altitude[10]="";
 char speed[11]="";
-char frame[200]="";
+//char frame[200]="";
 char date[17]="";
 char satellites[4]="";
 char course[11]="";
 char chgMode[2]="";
 char percent[4]="";
 char voltage[5]="";
-char bat_chg_info[100]="";
+//char bat_chg_info[100]="";
 char SMS[50] = "";
 uint8_t sms_idx = 0;
 
@@ -114,57 +114,57 @@ int8_t sendATcommand(const char* ATcommand, const char* expected_answer, unsigne
     return answer;
 }
 
-void report_err(int try_num, char msg[40]) { // USE ONLY AFTER GETTING GPRS BEARER !!
-  bool success = false;
-  answer = sendATcommand("AT+HTTPINIT", "OK", 5000);
-      if (answer == 1)
-      {
-      // Sets CID parameter
-        answer = sendATcommand("AT+HTTPPARA=\"CID\",1", "OK", 2000);
-        if (answer == 1)
-        {
-          // Sets url 
-          sprintf(aux_str, "AT+HTTPPARA=\"URL\",\"%s", error_url);
-          Serial.print(aux_str);
-          // answer = sendATcommand(aux_str, "OK", 2000);
-          sprintf(frame, "?error=%s&device=%s", msg, DEVICE_ID);
-          Serial.print(frame);
-          answer = sendATcommand("\"", "OK", 5000);
-          if (answer == 1)
-          {
-            answer = sendATcommand("AT+HTTPPARA=\"CONTENT\",\"application/x-www-form-urlencoded\"", "OK", 2000);
-            if(answer == 1) {
-              // Starts GET action
-              answer = sendATcommand("AT+HTTPACTION=0", "+HTTPACTION:0,200", 10000);
-              if (answer == 1) {
-                success = true;
-              } else {
-                Serial.println(F("Error getting url")); // TODO: SHOW ERR
-                //here if url is not available, set old url a-larionov.ru:2222/data_parser.php
-                ledFlash(1000, ERROR_PIN, 10); //this is set to understand that something went wrong on data sending - the last step!
-              }
-            } else { //TODO: ALL HERE SHOW ERR
-              Serial.println(F("Error setting cont type"));
-              ledFlash(1000, ERROR_PIN, 10);
-            }
-          } else {
-            Serial.println(F("Error setting the url"));
-            ledFlash(1000, ERROR_PIN, 10);
-          }
-        } else {
-          Serial.println(F("Error setting the CID"));
-          ledFlash(1000, ERROR_PIN, 10);
-        }    
-      } else {
-        Serial.println(F("Error initializating"));
-        ledFlash(1000, ERROR_PIN, 10);
-      }
-    sendATcommand("AT+HTTPTERM", "OK", 5000);
-    if (success == true)
-    {
-      ledFlash(200, ERROR_PIN, 7); // TODO: SHOW OK
-    }
-}
+//void report_err(int try_num, char msg[40]) { // USE ONLY AFTER GETTING GPRS BEARER !!
+//  bool success = false;
+//  answer = sendATcommand("AT+HTTPINIT", "OK", 5000);
+//      if (answer == 1)
+//      {
+//      // Sets CID parameter
+//        answer = sendATcommand("AT+HTTPPARA=\"CID\",1", "OK", 2000);
+//        if (answer == 1)
+//        {
+//          // Sets url 
+//          sprintf(aux_str, "AT+HTTPPARA=\"URL\",\"%s", error_url);
+//          Serial.print(aux_str);
+//          // answer = sendATcommand(aux_str, "OK", 2000);
+//          sprintf(frame, "?error=%s&device=%s", msg, DEVICE_ID);
+//          Serial.print(frame);
+//          answer = sendATcommand("\"", "OK", 5000);
+//          if (answer == 1)
+//          {
+//            answer = sendATcommand("AT+HTTPPARA=\"CONTENT\",\"application/x-www-form-urlencoded\"", "OK", 2000);
+//            if(answer == 1) {
+//              // Starts GET action
+//              answer = sendATcommand("AT+HTTPACTION=0", "+HTTPACTION:0,200", 10000);
+//              if (answer == 1) {
+//                success = true;
+//              } else {
+//                Serial.println(F("Error getting url")); // TODO: SHOW ERR
+//                //here if url is not available, set old url a-larionov.ru:2222/data_parser.php
+//                ledFlash(1000, ERROR_PIN, 10); //this is set to understand that something went wrong on data sending - the last step!
+//              }
+//            } else { //TODO: ALL HERE SHOW ERR
+//              Serial.println(F("Error setting cont type"));
+//              ledFlash(1000, ERROR_PIN, 10);
+//            }
+//          } else {
+//            Serial.println(F("Error setting the url"));
+//            ledFlash(1000, ERROR_PIN, 10);
+//          }
+//        } else {
+//          Serial.println(F("Error setting the CID"));
+//          ledFlash(1000, ERROR_PIN, 10);
+//        }    
+//      } else {
+//        Serial.println(F("Error initializating"));
+//        ledFlash(1000, ERROR_PIN, 10);
+//      }
+//    sendATcommand("AT+HTTPTERM", "OK", 5000);
+//    if (success == true)
+//    {
+//      ledFlash(200, ERROR_PIN, 7); // TODO: SHOW OK
+//    }
+//}
 
 void ledFlash(int del, int pin, int count) { // 3
   for (int i = 0; i < count; i++) {
@@ -275,7 +275,7 @@ void gps_up() {
       x++;
       if (x >= 4)
       {
-        report_err(x, "Can_not_fix_location"); // IMPORTANT !! NOT use characters that may cause URL breaks!!
+//        report_err(x, "Can_not_fix_location"); // IMPORTANT !! NOT use characters that may cause URL breaks!!
       }
     }
     if (stat) {
@@ -372,101 +372,101 @@ void gprs_up() {
     }
 }
 
-int8_t getCoordinates() { //TODO add reporting error if location is missing !
-
-    int8_t counter, answer;
-    long previous;
-
-    // First get the NMEA string
-    // Clean the input buffer
-    while( Serial.available() > 0) Serial.read(); 
-    // request Basic string
-    sendATcommand("AT+CGPSINF=0", "AT+CGPSINF=0\r\n\r\n", 2000);
-
-    counter = 0;
-    answer = 0;
-    memset(frame, '\0', 100);    // Initialize the string
-    previous = millis();
-    // this loop waits for the NMEA string
-    do {
-        if(Serial.available() != 0){    
-            frame[counter] = Serial.read();
-            counter++;
-            // check if the desired answer is in the response of the module
-            if (strstr(frame, "OK") != NULL)    
-            {
-                answer = 1;
-            }
-        }
-        // Waits for the asnwer with time out
-    }
-    while((answer == 0) && ((millis() - previous) < 2000));  
-
-    frame[counter-3] = '\0'; 
-    
-    // Parses the string 
-    strtok(frame, ",");
-    strcpy(longitude,strtok(NULL, ",")); // Gets longitude
-    strcpy(latitude,strtok(NULL, ",")); // Gets latitude
-    strcpy(altitude,strtok(NULL, ".")); // Gets altitude 
-    strtok(NULL, ",");    
-    strcpy(date,strtok(NULL, ".")); // Gets date
-    strtok(NULL, ",");
-    strtok(NULL, ",");  
-    strcpy(satellites,strtok(NULL, ",")); // Gets satellites
-    strcpy(speed,strtok(NULL, ",")); // Gets speed over ground. Unit is knots.
-    strcpy(course,strtok(NULL, "\r")); // Gets course
-    
-    return answer;
-}
+//int8_t getCoordinates() { //TODO add reporting error if location is missing !
+//
+//    int8_t counter, answer;
+//    long previous;
+//
+//    // First get the NMEA string
+//    // Clean the input buffer
+//    while( Serial.available() > 0) Serial.read(); 
+//    // request Basic string
+//    sendATcommand("AT+CGPSINF=0", "AT+CGPSINF=0\r\n\r\n", 2000);
+//
+//    counter = 0;
+//    answer = 0;
+//    memset(frame, '\0', 100);    // Initialize the string
+//    previous = millis();
+//    // this loop waits for the NMEA string
+//    do {
+//        if(Serial.available() != 0){    
+//            frame[counter] = Serial.read();
+//            counter++;
+//            // check if the desired answer is in the response of the module
+//            if (strstr(frame, "OK") != NULL)    
+//            {
+//                answer = 1;
+//            }
+//        }
+//        // Waits for the asnwer with time out
+//    }
+//    while((answer == 0) && ((millis() - previous) < 2000));  
+//
+//    frame[counter-3] = '\0'; 
+//    
+//    // Parses the string 
+//    strtok(frame, ",");
+//    strcpy(longitude,strtok(NULL, ",")); // Gets longitude
+//    strcpy(latitude,strtok(NULL, ",")); // Gets latitude
+//    strcpy(altitude,strtok(NULL, ".")); // Gets altitude 
+//    strtok(NULL, ",");    
+//    strcpy(date,strtok(NULL, ".")); // Gets date
+//    strtok(NULL, ",");
+//    strtok(NULL, ",");  
+//    strcpy(satellites,strtok(NULL, ",")); // Gets satellites
+//    strcpy(speed,strtok(NULL, ",")); // Gets speed over ground. Unit is knots.
+//    strcpy(course,strtok(NULL, "\r")); // Gets course
+//    
+//    return answer;
+//}
 
 void alarm() {
 
 }
 
-void getBatChgLvl() {
-  
-  int8_t counter, answer;
-  long previous;
-  char * pch;
-  // Clean the input buffer
-  while( Serial.available() > 0) Serial.read(); 
-  // request Basic string
-//  sendATcommand("AT+CBC", "OK", 80);
-  Serial.println("AT+CBC");
-
-  counter = 0;
-  answer = 0;
-  memset(bat_chg_info, '\0', 100);    // Initialize the string
-  previous = millis();
-  do {
-    if(Serial.available() != 0){    
-      SoftSerial.write(Serial.read());
-    }
-  } while ((millis() - previous) < 800);
-
-  bat_chg_info[counter-3] = '\0'; 
-//  int x = 0;
-//  while(x < 60) {
-//    if (bat_chg_info[x] != '\0') {
-//      SoftSerial.write(bat_chg_info[x]);
+//void getBatChgLvl() {
+//  
+//  int8_t counter, answer;
+//  long previous;
+//  char * pch;
+//  // Clean the input buffer
+//  while( Serial.available() > 0) Serial.read(); 
+//  // request Basic string
+////  sendATcommand("AT+CBC", "OK", 80);
+//  Serial.println("AT+CBC");
+//
+//  counter = 0;
+//  answer = 0;
+//  memset(bat_chg_info, '\0', 100);    // Initialize the string
+//  previous = millis();
+//  do {
+//    if(Serial.available() != 0){    
+//      SoftSerial.write(Serial.read());
 //    }
-//  }
-  // pch = strtok (str," ,.-");
-  // while (pch != NULL)
-  // {
-  //   printf ("%s\n",pch);
-  //   pch = strtok (NULL, " ,.-");
-  // }
-  
-  // Parses the string 
-  strtok(bat_chg_info, ",");
-  strcpy(chgMode,strtok(NULL, ",")); // Gets battery charging mode (0-NOT charging, 1-charging, 2-charged)
-  strcpy(percent,strtok(NULL, ",")); // Gets battery percentage
-  strcpy(voltage,strtok(NULL, "\r")); // Gets battery voltage
-  
-  return answer;
-}
+//  } while ((millis() - previous) < 500);
+//
+//  bat_chg_info[counter-3] = '\0'; 
+////  int x = 0;
+////  while(x < 60) {
+////    if (bat_chg_info[x] != '\0') {
+////      SoftSerial.write(bat_chg_info[x]);
+////    }
+////  }
+//  // pch = strtok (str," ,.-");
+//  // while (pch != NULL)
+//  // {
+//  //   printf ("%s\n",pch);
+//  //   pch = strtok (NULL, " ,.-");
+//  // }
+//  
+//  // Parses the string 
+//  strtok(bat_chg_info, ",");
+//  strcpy(chgMode,strtok(NULL, ",")); // Gets battery charging mode (0-NOT charging, 1-charging, 2-charged)
+//  strcpy(percent,strtok(NULL, ",")); // Gets battery percentage
+//  strcpy(voltage,strtok(NULL, "\r")); // Gets battery voltage
+//  
+//  return answer;
+//}
 
 void sendBatChgLvl() {
   // // to cause interrupt on reciever device, because interrupts by incoming bytes in UART on it are disabled =(
@@ -600,6 +600,7 @@ void getLastSMSIndex() {
   char buff[100]="";
   int8_t answer = 0;
   uint8_t x = 0;
+  long previous;
   sendATcommand("AT+CMGF=1", "OK", 800);    // sets the SMS mode to text
   sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 800); // choose sim card memory
   
@@ -812,7 +813,7 @@ void loop() {
       // sendCoordsInSMS();
       // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
 
-      getCoordinates();
+//      getCoordinates();
       // sendCoordinates();
   } else {
       // send coords every 4th time
@@ -820,7 +821,7 @@ void loop() {
       {
         // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
 
-        getCoordinates();
+//        getCoordinates();
         // sendCoordinates();
         sleep_counter = 0;
       }
