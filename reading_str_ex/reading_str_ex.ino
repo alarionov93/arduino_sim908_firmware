@@ -1,4 +1,4 @@
-char answ[300] = "+CMGL: 1,\"REC UNREAD\",\"+79655766572\",\"\",\"17/04/22,00:38:19+20\"\r\nGL\r\nOK";
+//char answ[300] = "+CMGL: 1,\"REC UNREAD\",\"+79655766572\",\"\",\"17/04/22,00:38:19+20\"\r\nGL\r\nOK";
 int8_t answer = 0;
 
 int i = 0;
@@ -10,13 +10,14 @@ char sms_from_str[12]="";
 char sms_mode[10]="";
 
 void setup() {
-	
+	Serial.begin(19200);
 }
 void loop() {
-
+  char answ[300] = "+CMGL: 1,\"REC UNREAD\",\"+79655766572\",\"\",\"17/04/22,00:38:19+20\"\r\nGL\r\nOK";
 	if (strstr(answ, "+CMGL") != NULL) 
 	{
 	  pch = strtok(answ, ":");
+    Serial.print(pch);
 	  strcpy(sms_idx_str, strtok(NULL, ","));
 	  strcpy(sms_mode, strtok(NULL, ","));
 	  strcpy(sms_from_str, strtok(NULL, ","));
@@ -24,8 +25,11 @@ void loop() {
 	  Serial.println(answ);
 	  Serial.print("SMS IDX: ");
 	  Serial.print(sms_idx);
+    Serial.print(", ");
+    Serial.print(sms_idx_str);
 	  Serial.print("SMS FROM: ");
 	  Serial.print(sms_from_str);
+    Serial.print(sms_mode);
 	} 
 	else 
 	{
