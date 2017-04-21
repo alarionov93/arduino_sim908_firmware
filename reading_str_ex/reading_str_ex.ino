@@ -13,26 +13,41 @@ void setup() {
 	Serial.begin(19200);
 }
 void loop() {
-  char answ[300] = "+CMGL: 1,\"REC UNREAD\",\"+79655766572\",\"\",\"17/04/22,00:38:19+20\"\r\nGL\r\nOK";
+	char answ[300] = "+CMGL: 1,\"REC UNREAD\",\"+79655766572\",\"\",\"17/04/22,00:38:19+20\"\r\nGL\r\nOK";
 	if (strstr(answ, "+CMGL") != NULL) 
 	{
-	  pch = strtok(answ, ":");
-    Serial.print(pch);
-	  strcpy(sms_idx_str, strtok(NULL, ","));
-	  strcpy(sms_mode, strtok(NULL, ","));
-	  strcpy(sms_from_str, strtok(NULL, ","));
-	  sms_idx = atoi(sms_idx_str);
-	  Serial.println(answ);
-	  Serial.print("SMS IDX: ");
-	  Serial.print(sms_idx);
-    Serial.print(", ");
-    Serial.print(sms_idx_str);
-	  Serial.print("SMS FROM: ");
-	  Serial.print(sms_from_str);
-    Serial.print(sms_mode);
+		char data[20] = "";
+
+		/* get the first token */
+		pch = strtok(answ, ":");
+
+		/* walk through other tokens */
+		while( pch != NULL ) 
+		{
+		  memset(data, '\0', 20);	
+		  sprintf(data, " %s\n", pch);
+		  Serial.println(data);
+		  // Serial.println(pch);
+		  pch = strtok(NULL, ",");
+		}
+
+		// pch = strtok(answ, ":");
+  //   	Serial.print(pch);
+		// strcpy(sms_idx_str, strtok(NULL, ","));
+		// strcpy(sms_mode, strtok(NULL, ","));
+		// strcpy(sms_from_str, strtok(NULL, ","));
+		// sms_idx = atoi(sms_idx_str);
+		// Serial.println(answ);
+		// Serial.print("SMS IDX: ");
+		// Serial.print(sms_idx);
+	 //    Serial.print(", ");
+	 //    Serial.print(sms_idx_str);
+		// Serial.print("SMS FROM: ");
+		// Serial.print(sms_from_str);
+  //   	Serial.print(sms_mode);
 	} 
 	else 
 	{
-	  Serial.println("ERROR GETTING LAST SMS INDEX OR NO UNREAD MESSAGES.");
+		Serial.println("ERROR GETTING LAST SMS INDEX OR NO UNREAD MESSAGES.");
 	}
 }
