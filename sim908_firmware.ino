@@ -443,7 +443,7 @@ void getBatChgLvl() {
     if(Serial.available() != 0){    
       SoftSerial.write(Serial.read());
     }
-  } while ((millis() - previous) < 500);
+  } while ((millis() - previous) < 800);
 
   bat_chg_info[counter-3] = '\0'; 
 //  int x = 0;
@@ -612,14 +612,31 @@ void getLastSMSIndex() {
   char sms_idx_str[5]="";
   char sms_from_str[12]="";
   
-  Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
+  Serial.println("AT+CMGL=\"ALL\", 0"); // choose unread sms
 
-  while(Serial.available() > 0)
-  {
-    buff[i] = Serial.read();
-    SoftSerial.write(buff[i]);
-    i++;
+  previous = millis();
+  answer = 0;
+  // this loop waits for the NMEA string
+  do {
+      if(Serial.available() != 0){    
+          buff[i] = Serial.read();
+          i++;
+          // check if the desired answer is in the response of the module
+          if (strstr(buff, "OK") != NULL)    
+          {
+              answer = 1;
+          }
+      }
+      // Waits for the asnwer with time out
   }
+  while((answer == 0) && ((millis() - previous) < 2000));
+
+  // while(Serial.available() > 0)
+  // {
+  //   buff[i] = Serial.read();
+  //   SoftSerial.write(buff[i]);
+  //   i++;
+  // }
 
   SoftSerial.println(buff);
 
