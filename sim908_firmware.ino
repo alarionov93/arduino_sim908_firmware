@@ -612,6 +612,7 @@ void getLastSMSIndex() {
   char * pch;
   char sms_idx_str[5]="";
   char sms_from_str[12]="";
+  char sms_mode[10]="";
   
   Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
 
@@ -630,7 +631,7 @@ void getLastSMSIndex() {
       }
       // Waits for the asnwer with time out
   }
-  while((answer == 0) && ((millis() - previous) < 2000));
+  while(answer == 0);
 
   // while(Serial.available() > 0)
   // {
@@ -645,6 +646,7 @@ void getLastSMSIndex() {
   {
       pch = strtok(buff, ":");
       strcpy(sms_idx_str, strtok(NULL, ","));
+      strcpy(sms_mode, strtok(NULL, ","));
       strcpy(sms_from_str, strtok(NULL, ","));
       sms_idx = atoi(sms_idx_str);
       ledFlash(50, OK_PIN, 10);
