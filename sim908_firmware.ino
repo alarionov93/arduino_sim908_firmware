@@ -600,6 +600,7 @@ void getLastSMSIndex() {
   char buff[100]="";
   int8_t answer = 0;
   uint8_t x = 0;
+  long previous;
   sendATcommand("AT+CMGF=1", "OK", 800);    // sets the SMS mode to text
   sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 800); // choose sim card memory
   
@@ -612,14 +613,31 @@ void getLastSMSIndex() {
   char sms_idx_str[5]="";
   char sms_from_str[12]="";
   
-  Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
+  Serial.println("AT+CMGL=\"ALL\", 0"); // choose unread sms
 
-  while(Serial.available() > 0)
-  {
-    buff[i] = Serial.read();
-    SoftSerial.write(buff[i]);
-    i++;
+  previous = millis();
+  answer = 0;
+  // this loop waits for the NMEA string
+  do {
+      if(Serial.available() != 0){    
+          buff[i] = Serial.read();
+          i++;
+          // check if the desired answer is in the response of the module
+          if (strstr(buff, "OK") != NULL)    
+          {
+              answer = 1;
+          }
+      }
+      // Waits for the asnwer with time out
   }
+  while((answer == 0) && ((millis() - previous) < 2000));
+
+  // while(Serial.available() > 0)
+  // {
+  //   buff[i] = Serial.read();
+  //   SoftSerial.write(buff[i]);
+  //   i++;
+  // }
 
   SoftSerial.println(buff);
 
