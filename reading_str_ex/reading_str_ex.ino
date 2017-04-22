@@ -30,28 +30,8 @@ void loop() {
 		  {
 	        case 1:
 				// Serial.println(pch);
-				// sms_idx = atoi(pch);
-	        	int res = 0;
-	        	int dec = 0;
-	        	int real_len = 0;
-	        	for (int i = 0; i < 15; i++)
-				{
-					if (data[i] == NULL | data[i] == '\0')
-					{
-						/* nothing, empty character */
-					}
-					else
-					{
-						real_len++;
-					}
-				}
-				for (int i = 0; i < real_len; i++)
-				{
-					dec = (data[i] - 48) * 10^(real_len - i);
-					Serial.print(dec); Serial.print("\t");
-					res += dec;
-				}
-				Serial.println(res);
+	        	strcpy(sms_idx_str, data);
+				sms_idx = atoi(sms_idx_str);
 				break;
 		  	case 3:
 		  		strcpy(sms_from, data);
@@ -64,9 +44,10 @@ void loop() {
 		  pch = strtok(NULL, ",");
 		  x++;
 		}
-		// Serial.println(sms_idx);
-//		Serial.println(sms_from);
-//		Serial.println(sms_text);
+		Serial.println(sms_idx_str);
+		Serial.println(sms_idx);
+		Serial.println(sms_from);
+		Serial.println(sms_text);
 
 		// pch = strtok(answ, ":");
   //   	Serial.print(pch);
