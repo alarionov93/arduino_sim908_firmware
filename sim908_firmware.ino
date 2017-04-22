@@ -64,8 +64,8 @@ char chgMode[2]="";
 char percent[4]="";
 char voltage[5]="";
 //char bat_chg_info[100]="";
-char SMS[50] = "";
-uint8_t sms_idx = 0;
+char SMS[10] = "";
+char sms_idx_str[3]="";
 
 
 SoftwareSerial SoftSerial(SS_RX, SS_TX); // RX, TX
@@ -605,14 +605,14 @@ void getLastSMSIndex() {
   sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 800); // choose sim card memory
   
 
-  memset(buff, '\0', 100);
+  memset(buff, '\0', 70);
     
   int i = 0;
 
   char * pch;
-  char sms_idx_str[5]="";
-  char sms_from_str[12]="";
-  char sms_mode[10]="";
+  
+  char sms_from_str[15]="";
+  char sms_text[10]="";
   
   Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
 
@@ -640,25 +640,47 @@ void getLastSMSIndex() {
   //   i++;
   // }
 
-  SoftSerial.println(buff);
+  // SoftSerial.println(buff);
 
   if (strstr(buff, "+CMGL") != NULL) 
   {
-      pch = strtok(buff, ":");
-      strcpy(sms_idx_str, strtok(NULL, ","));
-      strcpy(sms_mode, strtok(NULL, ","));
-      strcpy(sms_from_str, strtok(NULL, ","));
-      sms_idx = atoi(sms_idx_str);
-      ledFlash(50, OK_PIN, 10);
-      SoftSerial.println(buff);
-      SoftSerial.print("SMS IDX: ");
-      SoftSerial.print(sms_idx);
-      SoftSerial.print("SMS FROM: ");
-      SoftSerial.print(sms_from_str);
+    char data[15] = "";
+    /* get the first token */
+    pch = strtok(answ, ":");
+    /* walk through other tokens */
+    int x = 0;
+    while( pch != NULL ) 
+    {
+      memset(data, '\0', 15); 
+      sprintf(data, " %s\n", pch);
+      // Serial.println(data);
+      switch (x) 
+      {
+        case 1:
+          strcpy(sms_idx_str, data);
+          break;
+        case 3:
+          strcpy(sms_from_str, data);
+          break;
+        case 6:
+          strcpy(sms_text, data);
+          break;
+      }
+      pch = strtok(NULL, ",");
+      x++;
+    }
+    ledFlash(50, OK_PIN, 10);
+    // SoftSerial.println(buff);
+    SoftSerial.print("SMS IDX: ");
+    SoftSerial.print(sms_idx_str);
+    SoftSerial.print("SMS FROM: ");
+    SoftSerial.print(sms_from_str);
+    SoftSerial.print("SMS TEXT: ");
+    SoftSerial.print(sms_text);
   } 
   else 
   {
-      SoftSerial.println("ERROR GETTING LAST SMS INDEX OR NO UNREAD MESSAGES.");
+    SoftSerial.println("ERROR GETTING LAST SMS INDEX OR NO UNREAD MESSAGES.");
   }
 
   // if (answer == 1) 
@@ -684,12 +706,12 @@ void getLastSMSIndex() {
   // }
 }
 
-void readSMS(int index) {
+void readSMS(char * index) {
   SoftSerial.print("\tIndex recieved:");
   SoftSerial.println(index);
-  if (index > 0)
+  if (sizeof(index) > 0)
   {
-    memset(SMS, '\0', 60);
+    memset(SMS, '\0', 10);
     int8_t answer;
     uint8_t x = 0;
     char cmd[10] = "";
@@ -723,7 +745,7 @@ void readSMS(int index) {
         SoftSerial.print(SMS);
 
         memset(cmd, '\0', 10);
-        sprintf(cmd, "AT+CMGD=%d", index); // delete read message
+        sprintf(cmd, "AT+CMGD=%s", index); // delete read message
         sendATcommand(cmd, "OK", 1000);
     }
     else
@@ -784,7 +806,7 @@ void setup() {
   SoftSerial.println("Configure module: Test SMS msg.");
   getLastSMSIndex();
   SoftSerial.println("Configure module: Test SMS got SMS idx.");
-  readSMS(sms_idx);
+  readSMS(sms_idx_str);
   SoftSerial.println("Configure module: Test SMS read SMS here.");
   if (strstr(SMS, "GL") != NULL) // found incoming SMS with coordinates request
   {
