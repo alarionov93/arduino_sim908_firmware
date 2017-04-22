@@ -646,7 +646,7 @@ void getLastSMSIndex() {
   {
     char data[15] = "";
     /* get the first token */
-    pch = strtok(answ, ":");
+    pch = strtok(buff, ":");
     /* walk through other tokens */
     int x = 0;
     while( pch != NULL ) 
