@@ -1,8 +1,6 @@
 //char answ[300] = "+CMGL: 1,\"REC UNREAD\",\"+79655766572\",\"\",\"17/04/22,00:38:19+20\"\r\nGL\r\nOK";
 int8_t answer = 0;
 
-int i = 0;
-
 char * pch;
 char sms_idx_str[3]="";
 long sms_idx = 0;
@@ -30,16 +28,35 @@ void loop() {
 		  // Serial.println(data);
 		  switch (x) 
 		  {
-        case 1:
-          Serial.println(pch);
-          sms_idx = atoi(pch);
-          break;
+	        case 1:
+				// Serial.println(pch);
+				// sms_idx = atoi(pch);
+	        	int res = 0;
+	        	int dec = 0;
+	        	int real_len = 0;
+	        	for (int i = 0; i < 15; i++)
+				{
+					if (data[i] == NULL | data[i] == '\0')
+					{
+						/* nothing, empty character */
+					}
+					else
+					{
+						real_len++;
+					}
+				}
+				for (int i = 0; i < real_len; i++)
+				{
+					dec = (data[i] - 48) * 10^(real_len - i);
+					Serial.print(dec); Serial.print("\t");
+					res += dec;
+				}
+				Serial.println(res);
+				break;
 		  	case 3:
-//          Serial.println(data);
 		  		strcpy(sms_from, data);
 		  		break;
 		  	case 6:
-//          Serial.println(data);
 		  		strcpy(sms_text,data);
 		  		break;
 		  }
@@ -47,7 +64,7 @@ void loop() {
 		  pch = strtok(NULL, ",");
 		  x++;
 		}
-		Serial.println(sms_idx);
+		// Serial.println(sms_idx);
 //		Serial.println(sms_from);
 //		Serial.println(sms_text);
 
