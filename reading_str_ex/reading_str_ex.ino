@@ -28,11 +28,10 @@ void loop() {
 		  // Serial.println(data);
 		  switch (x) 
 		  {
-	        case 1:
-				// Serial.println(pch);
-	        	strcpy(sms_idx_str, data);
-				sms_idx = atoi(sms_idx_str);
-				break;
+	      case 1:
+	        strcpy(sms_idx_str, data);
+				  sms_idx = atoi(sms_idx_str);
+				  break;
 		  	case 3:
 		  		strcpy(sms_from, data);
 		  		break;
@@ -46,8 +45,8 @@ void loop() {
 		}
 		Serial.println(sms_idx_str);
 		Serial.println(sms_idx);
-		Serial.println(sms_from);
-		Serial.println(sms_text);
+//		Serial.println(sms_from);
+//		Serial.println(sms_text);
 
 		// pch = strtok(answ, ":");
   //   	Serial.print(pch);
