@@ -656,14 +656,39 @@ void getLastSMSIndex() {
       // Serial.println(data);
       switch (x) 
       {
+        case 0:
+          SoftSerial.print("Data0: ");
+          SoftSerial.print(data);
+          break;
         case 1:
           strcpy(sms_idx_str, data);
+          SoftSerial.print("Data1: ");
+          SoftSerial.print(sms_idx_str);
+          break;
+        case 2:
+          SoftSerial.print("Data2: ");
+          SoftSerial.print(data);
           break;
         case 3:
           strcpy(sms_from_str, data);
+          SoftSerial.print("Data3: ");
+          SoftSerial.print(sms_from_str);
+          break;
+        case 4:
+          SoftSerial.print("Data4: ");
+          SoftSerial.print(data);
+          break;
+        case 5:
+          SoftSerial.print("Data5: ");
+          SoftSerial.print(data);
           break;
         case 6:
           strcpy(sms_text, data);
+          SoftSerial.print("Data6: ");
+          SoftSerial.print(sms_text);
+          break;
+        case 7:
+          SoftSerial.print("Data7: ");
           break;
       }
       pch = strtok(NULL, ",");
@@ -671,12 +696,12 @@ void getLastSMSIndex() {
     }
     ledFlash(50, OK_PIN, 10);
     // SoftSerial.println(buff);
-    SoftSerial.print("SMS IDX: ");
-    SoftSerial.print(sms_idx_str);
-    SoftSerial.print("SMS FROM: ");
-    SoftSerial.print(sms_from_str);
-    SoftSerial.print("SMS TEXT: ");
-    SoftSerial.print(sms_text);
+    // SoftSerial.print("SMS IDX: ");
+    // SoftSerial.print(sms_idx_str);
+    // SoftSerial.print("SMS FROM: ");
+    // SoftSerial.print(sms_from_str);
+    // SoftSerial.print("SMS TEXT: ");
+    // SoftSerial.print(sms_text);
   } 
   else 
   {
@@ -718,7 +743,7 @@ void readSMS(char * index) {
     sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
     sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 1000);    // selects the memory
     //TODO: read the LAST (!!!) SMS message, NOT FIRST !!!
-    sprintf(cmd, "AT+CMGR=%d", index);
+    sprintf(cmd, "AT+CMGR=%s", index);
     answer = sendATcommand(cmd, "+CMGR:", 2000);    // reads the first SMS
     if (answer == 1)
     {
