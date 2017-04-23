@@ -676,13 +676,16 @@ void readSMS(int index) {
   char cmd[15] = "";
   SoftSerial.print("IDX RECV:");
   SoftSerial.print(index);
-  SoftSerial.print("\n");
+  
   if (index > 0 && strstr(sms_phone_from, "9655766572") != NULL)
   {
+    SoftSerial.print("COND IS OK, READ MSG.\n");
     sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
     sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 1000);    // selects the memory
     //TODO: read the LAST (!!!) SMS message, NOT FIRST !!!
-    sprintf(cmd, "AT+CMGR=%d", index);
+    sprintf(cmd, "AT+CMGR=%d\r\n", index);
+    SoftSerial.print(cmd);
+    SoftSerial.print("BEFORE READ MSG.\n");
     answer = sendATcommand(cmd, "+CMGR:", 2000);    // reads the first SMS
     if (answer == 1)
     {
@@ -899,7 +902,7 @@ ISR(TIMER1_COMPA_vect) {
   SoftSerial.print("IN ISR.\n");
   if (is_sleep_in_watch_mode == 1)
   {
-    ledFlash(30, ERROR_PIN, 4);
+    ledFlash(30, OK_PIN, 4);
   }
 //   if (timer_interrupt_count == 0 || (timer_interrupt_count % 50) == 0) {
 // //    getBatChgLvl();
