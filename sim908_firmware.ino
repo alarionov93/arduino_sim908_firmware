@@ -65,8 +65,8 @@ char percent[4]="";
 char voltage[5]="";
 //char bat_chg_info[100]="";
 char SMS[10] = "";
-char sms_idx_str[3]="";
-
+// char sms_idx_str[3]="";
+int sms_idx = 0;
 
 SoftwareSerial SoftSerial(SS_RX, SS_TX); // RX, TX
 
@@ -646,7 +646,7 @@ void getLastSMSIndex() {
   {
 
     char phone[20] = "";
-    int sms_idx = 0;
+    
     char date[10] = "";
     char time[15] = "";
     char msg[15] = "";
@@ -658,7 +658,7 @@ void getLastSMSIndex() {
     SoftSerial.print("SMS FROM: ");
     SoftSerial.print(phone);
     SoftSerial.println();
-    
+
     // char data[15] = "";
     // /* get the first token */
     // pch = strtok(buff, ":");
@@ -748,10 +748,10 @@ void getLastSMSIndex() {
   // }
 }
 
-void readSMS(const char* index) {
+void readSMS(int index) {
   SoftSerial.print("\tIndex recieved:");
   SoftSerial.println(index);
-  if (sizeof(index) > 0)
+  if (index > 0)
   {
     memset(SMS, '\0', 10);
     int8_t answer;
@@ -760,7 +760,7 @@ void readSMS(const char* index) {
     sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
     sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 1000);    // selects the memory
     //TODO: read the LAST (!!!) SMS message, NOT FIRST !!!
-    sprintf(cmd, "AT+CMGR=%s", index);
+    sprintf(cmd, "AT+CMGR=%d", index);
     answer = sendATcommand(cmd, "+CMGR:", 2000);    // reads the first SMS
     if (answer == 1)
     {
@@ -787,8 +787,17 @@ void readSMS(const char* index) {
         SoftSerial.print(SMS);
 
         memset(cmd, '\0', 10);
-        sprintf(cmd, "AT+CMGD=%s", index); // delete read message
-        sendATcommand(cmd, "OK", 1000);
+        sprintf(cmd, "AT+CMGD=%d", index); // delete read message
+        answer = 0;
+        answer = sendATcommand(cmd, "OK", 1000);
+        if (answer == 1)
+        {
+          SoftSerial.print("RM MSG OK");
+        } 
+        else
+        {
+          SoftSerial.print("ERROR RM MSG");
+        }
     }
     else
     {
