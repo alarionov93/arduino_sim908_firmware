@@ -670,10 +670,10 @@ void getLastSMSIndex() {
 }
 
 void readSMS(int index) {
-  memset(SMS, '\0', 5);
+  memset(SMS, '\0', 4);
   int8_t answer;
   uint8_t x = 0;
-  char cmd[10] = "";
+  char cmd[15] = "";
   SoftSerial.print("IDX RECV:");
   SoftSerial.print(index);
   SoftSerial.print("\n");
@@ -686,6 +686,7 @@ void readSMS(int index) {
     answer = sendATcommand(cmd, "+CMGR:", 2000);    // reads the first SMS
     if (answer == 1)
     {
+        SoftSerial.print("READ INC MSG.\n");
         ledFlash(100, OK_PIN, 6);
         answer = 0;
         while(Serial.available() == 0);
@@ -708,7 +709,7 @@ void readSMS(int index) {
         
         SoftSerial.print(SMS);
 
-        memset(cmd, '\0', 10);
+        memset(cmd, '\0', 14);
         sprintf(cmd, "AT+CMGD=%d", index); // delete read message
         answer = 0;
         answer = sendATcommand(cmd, "OK", 1000);
