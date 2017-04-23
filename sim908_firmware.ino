@@ -693,12 +693,16 @@ void readSMS(int index) {
         ledFlash(100, OK_PIN, 6);
         answer = 0;
         while(Serial.available() == 0);
+        SoftSerial.print("UART BUFF CLEAR.\n");
         // this loop reads the data of the SMS
         do{
             // if there are data in the UART input buffer, reads it and checks for the asnwer
+            SoftSerial.print("READS NOW.\n");
             if(Serial.available() > 0){    
                 SMS[x] = Serial.read();
                 x++;
+                SoftSerial.print(x);
+                SoftSerial.print(" ITER.\n");
                 // check if the desired answer (OK) is in the response of the module
                 if (strstr(SMS, "OK") != NULL)    
                 {
@@ -708,14 +712,14 @@ void readSMS(int index) {
             }
         } while(answer == 0);    // Waits for the asnwer with time out
         
-        SMS[x] = '\0';
+        // SMS[x] = '\0'; //commented for test
         
         SoftSerial.print(SMS);
 
-        memset(cmd, '\0', 14);
-        sprintf(cmd, "AT+CMGD=%d", index); // delete read message
+        // memset(cmd, '\0', 14); //commented for test
+        sprintf(cmd, "AT+CMGD=%d\r\n", index); // delete read message
         answer = 0;
-        answer = sendATcommand(cmd, "OK", 1000);
+        answer = sendATcommand("AT+CMGD=1", "OK", 1000);
         if (answer == 1)
         {
           SoftSerial.print("RM MSG OK");
