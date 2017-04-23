@@ -853,7 +853,8 @@ void loop() {
     // TODO: test working of powerDown after solving SMS, GPRS and read messages problems !!!
     for (int i = 0; i < 5; i++) //sleep for 40 seconds
     {
-      LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+      // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+      delay(8000);
     }
   }
   else 
@@ -863,7 +864,8 @@ void loop() {
     is_sleep_in_watch_mode = 1;
     for (int i = 0; i < 100; i++) //sleep for 800 seconds
     {
-      LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+      // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+      delay(8000);
     }
     is_sleep_in_watch_mode = 0;
     wake_up();
