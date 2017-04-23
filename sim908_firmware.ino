@@ -64,7 +64,7 @@ char percent[4]="";
 char voltage[5]="";
 //char bat_chg_info[100]="";
 
-char SMS[4] = "";
+char SMS[5] = "";
 int sms_idx = 0;
 char sms_phone_from[12] = "";
 
@@ -670,7 +670,7 @@ void getLastSMSIndex() {
 }
 
 void readSMS(int index) {
-  memset(SMS, '\0', 10);
+  memset(SMS, '\0', 5);
   int8_t answer;
   uint8_t x = 0;
   char cmd[10] = "";
@@ -786,6 +786,8 @@ void setup() {
   delay(100);
   SoftSerial.println("Conf GPRS.");
   gprs_up();
+  // test
+  is_sleep_in_watch_mode = 1;
   // ledFlash(50, ERROR_PIN, 3);
 
   // TEST LINES BELOW
@@ -840,6 +842,8 @@ void loop() {
       }
       sleep_counter++;
   }
+  // test
+  SoftSerial.print("AFTER SEND LOCATION.\n");
   button_state = digitalRead(SWITCH_MODE_PIN); // TODO: read "WM" from sms to activate watch mode and "TM" for track mode
   
   // if(button_state == HIGH) {
@@ -851,6 +855,7 @@ void loop() {
   {
     // delay(DEFAULT_TRACK_MODE_DELAY); 
     // TODO: test working of powerDown after solving SMS, GPRS and read messages problems !!!
+    SoftSerial.print("TRACK MODE ACTIVE.\n");
     for (int i = 0; i < 5; i++) //sleep for 40 seconds
     {
       // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
@@ -859,6 +864,8 @@ void loop() {
   }
   else 
   {
+    SoftSerial.print("WATCH MODE ACTIVE.\n");
+
     sleep_module();
     // delay(DEFAULT_WATCH_MODE_DELAY);
     is_sleep_in_watch_mode = 1;
@@ -888,6 +895,7 @@ void loop() {
 ISR(TIMER1_COMPA_vect) {
   noInterrupts();
   // TODO: after, uncomment this condition
+  SoftSerial.print("IN ISR.\n");
   if (is_sleep_in_watch_mode == 1)
   {
     ledFlash(30, ERROR_PIN, 4);
@@ -908,10 +916,10 @@ ISR(TIMER1_COMPA_vect) {
   } else {
     digitalWrite(SIG_PIN, LOW);
   }
-  if ((timer_interrupt_count % 4) == 0)
-  {
-    /* check sms here */
-  }
+  // if ((timer_interrupt_count % 4) == 0)
+  // {
+  //   /* check sms here */
+  // }
 
   timer_interrupt_count++;
   if (timer_interrupt_count > 1000) {
