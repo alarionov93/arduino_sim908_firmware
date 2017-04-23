@@ -609,10 +609,10 @@ void getLastSMSIndex() {
     
   int i = 0;
 
-  char * pch;
+  // char * pch;
   
-  char sms_from_str[15]="";
-  char sms_text[10]="";
+  // char sms_from_str[15]="";
+  // char sms_text[10]="";
   
   Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
 
@@ -644,57 +644,74 @@ void getLastSMSIndex() {
 
   if (strstr(buff, "+CMGL") != NULL) 
   {
-    char data[15] = "";
-    /* get the first token */
-    pch = strtok(buff, ":");
-    /* walk through other tokens */
-    int x = 0;
-    while( pch != NULL ) 
-    {
-      memset(data, '\0', 15); 
-      sprintf(data, " %s\n", pch);
-      // Serial.println(data);
-      switch (x) 
-      {
-        case 0:
-          SoftSerial.print("Data0: ");
-          SoftSerial.print(data);
-          break;
-        case 1:
-          strcpy(sms_idx_str, data);
-          SoftSerial.print("Data1: ");
-          SoftSerial.print(sms_idx_str);
-          break;
-        case 2:
-          SoftSerial.print("Data2: ");
-          SoftSerial.print(data);
-          break;
-        case 3:
-          strcpy(sms_from_str, data);
-          SoftSerial.print("Data3: ");
-          SoftSerial.print(sms_from_str);
-          break;
-        case 4:
-          SoftSerial.print("Data4: ");
-          SoftSerial.print(data);
-          break;
-        case 5:
-          SoftSerial.print("Data5: ");
-          SoftSerial.print(data);
-          break;
-        case 6:
-          strcpy(sms_text, data);
-          SoftSerial.print("Data6: ");
-          SoftSerial.print(sms_text);
-          break;
-        case 7:
-          SoftSerial.print("Data7: ");
-          break;
-      }
-      pch = strtok(NULL, ",");
-      x++;
-    }
-    ledFlash(50, OK_PIN, 10);
+
+    char phone[20] = "";
+    int sms_idx = 0;
+    char date[10] = "";
+    char time[15] = "";
+    char msg[15] = "";
+    sscanf(data, "%*[^:]: %d, %*[^,], %[^,], %*[^,], %[^,], %s\"\n%s", &sms_idx, phone, date, time, msg);
+
+    SoftSerial.println();
+    SoftSerial.print("SMS IDX: ");
+    SoftSerial.print(sms_idx);
+    SoftSerial.print("SMS FROM: ");
+    SoftSerial.print(phone);
+    SoftSerial.println();
+    
+    // char data[15] = "";
+    // /* get the first token */
+    // pch = strtok(buff, ":");
+    // /* walk through other tokens */
+    // int x = 0;
+    // while( pch != NULL ) 
+    // {
+    //   memset(data, '\0', 15); 
+    //   sprintf(data, " %s\n", pch);
+    //   // Serial.println(data);
+    //   switch (x) 
+    //   {
+    //     case 0:
+    //       SoftSerial.print("Data0: ");
+    //       SoftSerial.print(data);
+    //       break;
+    //     case 1:
+    //       strcpy(sms_idx_str, data);
+    //       sms_idx = atoi(sms_idx_str);
+    //       SoftSerial.print("Data1: ");
+    //       SoftSerial.print(sms_idx_str);
+    //       break;
+    //     case 2:
+    //       SoftSerial.print("Data2: ");
+    //       SoftSerial.print(data);
+    //       break;
+    //     case 3:
+    //       strcpy(sms_from_str, data);
+    //       SoftSerial.print("Data3: ");
+    //       SoftSerial.print(sms_from_str);
+    //       break;
+    //     case 4:
+    //       SoftSerial.print("Data4: ");
+    //       SoftSerial.print(data);
+    //       break;
+    //     case 5:
+    //       SoftSerial.print("Data5: ");
+    //       SoftSerial.print(data);
+    //       break;
+    //     case 6:
+    //       strcpy(sms_text, data);
+    //       SoftSerial.print("Data6: ");
+    //       SoftSerial.print(sms_text);
+    //       break;
+    //     case 7:
+    //       SoftSerial.print("Data7: ");
+    //       break;
+    //   }
+    //   pch = strtok(NULL, ",");
+    //   x++;
+    // }
+    // ledFlash(50, OK_PIN, 10);
+    //
     // SoftSerial.println(buff);
     // SoftSerial.print("SMS IDX: ");
     // SoftSerial.print(sms_idx_str);
@@ -731,7 +748,7 @@ void getLastSMSIndex() {
   // }
 }
 
-void readSMS(char * index) {
+void readSMS(const char* index) {
   SoftSerial.print("\tIndex recieved:");
   SoftSerial.println(index);
   if (sizeof(index) > 0)
