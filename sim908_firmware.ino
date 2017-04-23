@@ -680,13 +680,13 @@ void readSMS(int index) {
   if (index > 0 && strstr(sms_phone_from, "9655766572") != NULL)
   {
     SoftSerial.print("COND IS OK, READ MSG.\n");
-    sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
-    sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 1000);    // selects the memory
+    // sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
+    // sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 1000);    // selects the memory
     //TODO: read the LAST (!!!) SMS message, NOT FIRST !!!
-    sprintf(cmd, "AT+CMGR=%d\r\n", index);
+    // sprintf(cmd, "AT+CMGR=%d\r\n", index);
     SoftSerial.print(cmd);
     SoftSerial.print("BEFORE READ MSG.\n");
-    answer = sendATcommand(cmd, "+CMGR:", 2000);    // reads the first SMS
+    answer = sendATcommand("AT+CMGR=1", "+CMGR:", 2000);    // reads the first SMS
     if (answer == 1)
     {
         SoftSerial.print("READ INC MSG.\n");
