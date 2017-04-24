@@ -912,6 +912,7 @@ ISR(TIMER1_COMPA_vect) {
       }
     } while (Serial.available() != 0);
     SoftSerial.print(serial_buff);
+
     if (strstr(serial_buff, "+CMTI") != NULL)
     {
       SoftSerial.print("CHK MSG HERE.\n");
@@ -922,8 +923,9 @@ ISR(TIMER1_COMPA_vect) {
       uint8_t x = 0;
       long previous;
       Serial.println("AT+CMGF=1");    // sets the SMS mode to text
-      
+      SoftSerial.print("SET FORMAT.\n");
       Serial.println("AT+CPMS=\"SM\",\"SM\",\"SM\""); // choose sim card memory
+      SoftSerial.print("SET MEM.\n");
       
       memset(buff, '\0', 70);
         
@@ -933,12 +935,15 @@ ISR(TIMER1_COMPA_vect) {
 
       previous = millis();
       answer = 0;
+      SoftSerial.print("READ.");
+
       // this loop waits for the NMEA string
       do {
           if(Serial.available() != 0){    
               buff[i] = Serial.read();
               i++;
               // check if the desired answer is in the response of the module
+              SoftSerial.print(".");
               if (strstr(buff, "OK") != NULL)    
               {
                   answer = 1;
@@ -951,6 +956,7 @@ ISR(TIMER1_COMPA_vect) {
       if (strstr(buff, "+CMGL") != NULL) 
       {    
         sscanf(buff, "%*[^:]: %d, %*[^,], %[^,], %*[^,], %*[^,], %*s\"\n%*s", &sms_idx, sms_phone_from);
+        SoftSerial.print("GOT DATA.\n");
       } 
       else 
       {
