@@ -27,6 +27,7 @@ TODO list:
 #define TRACK_MODE      1
 #define WATCH_MODE      0
 #define DEVICE_ID       "13450633605839585280"
+
 // #ifndef ISR
 // ISR(USART_RX_vect) {
 //   ledFlash(20, OK_PIN, 1);
@@ -69,6 +70,12 @@ int sms_idx = 0;
 char sms_phone_from[12] = "";
 
 SoftwareSerial SoftSerial(SS_RX, SS_TX); // RX, TX
+
+uint8_t n_debug = 0;
+inline void debug(char* str) {
+  SoftSerial.print(n_debug++);
+  SoftSerial.println(str);
+}
 
 int8_t sendATcommand(const char* ATcommand, const char* expected_answer, unsigned int timeout){
 
@@ -674,8 +681,10 @@ void readSMS(int index) {
   int8_t answer;
   uint8_t x = 0;
   char cmd[15] = "";
+  char index_str[4] = "";
   SoftSerial.print("IDX RECV:");
   SoftSerial.print(index);
+  itoa(index, index_str, 10);
   
   if (index > 0 && strstr(sms_phone_from, "9655766572") != NULL)
   {
@@ -683,10 +692,10 @@ void readSMS(int index) {
     // sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
     // sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 1000);    // selects the memory
     //TODO: read the LAST (!!!) SMS message, NOT FIRST !!!
-    // sprintf(cmd, "AT+CMGR=%d\r\n", index);
+    sprintf(cmd, "AT+CMGR=%s", index_str);
     SoftSerial.print(cmd);
     SoftSerial.print("BEFORE READ MSG.\n");
-    answer = sendATcommand("AT+CMGR=1", "+CMGR:", 2000);    // reads the first SMS
+    answer = sendATcommand(cmd, "+CMGR:", 2000);    // reads the first SMS
     if (answer == 1)
     {
         SoftSerial.print("READ INC MSG.\n");
@@ -714,10 +723,10 @@ void readSMS(int index) {
         
         // SMS[x] = '\0'; //commented for test
         
-        SoftSerial.print(SMS);
+        // SoftSerial.print(SMS);
 
-        // memset(cmd, '\0', 14); //commented for test
-        sprintf(cmd, "AT+CMGD=%d\r\n", index); // delete read message
+        memset(cmd, '\0', 15); //commented for test
+        sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
         answer = 0;
         answer = sendATcommand("AT+CMGD=1", "OK", 1000);
         if (answer == 1)
@@ -740,8 +749,8 @@ void readSMS(int index) {
   {
     if (index > 0)
     {
-        memset(cmd, '\0', 10);
-        sprintf(cmd, "AT+CMGD=%d", index); // delete read message
+        memset(cmd, '\0', 15);
+        sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
         answer = 0;
         answer = sendATcommand(cmd, "OK", 1000);
         if (answer == 1)
