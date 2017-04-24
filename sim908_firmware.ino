@@ -921,8 +921,9 @@ ISR(TIMER1_COMPA_vect) {
       int8_t answer = 0;
       uint8_t x = 0;
       long previous;
-      sendATcommand("AT+CMGF=1", "OK", 800);    // sets the SMS mode to text
-      sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 800); // choose sim card memory
+      Serial.println("AT+CMGF=1");    // sets the SMS mode to text
+      
+      Serial.println("AT+CPMS=\"SM\",\"SM\",\"SM\""); // choose sim card memory
       
       memset(buff, '\0', 70);
         
@@ -1048,6 +1049,10 @@ ISR(TIMER1_COMPA_vect) {
       {
         SoftSerial.print("NO CMD.\n");
       }
+    }
+    if (strstr(buff, "RING") != NULL)
+    {
+      /* do something here, but need to check number */
     }
     sendBatChgLvl();
   } else {
