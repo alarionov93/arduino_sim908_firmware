@@ -602,17 +602,17 @@ void sendCoordinates() {
 // }
 
 void getLastSMSIndex() {
-  volatile char buff[90]="";
-  volatile int8_t answer = 0;
-  volatile uint8_t x = 0;
-  volatile long previous;
+  char buff[90]="";
+  int8_t answer = 0;
+  uint8_t x = 0;
+  long previous;
   sendATcommand("AT+CMGF=1", "OK", 800);    // sets the SMS mode to text
   sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 800); // choose sim card memory
   
 
   memset(buff, '\0', 70);
     
-  volatile int i = 0;
+  int i = 0;
   
   Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
 
@@ -846,14 +846,6 @@ void loop() {
   //TODO: coordinates difference should depend on calculation this value!!
 
   //TODO: use check_stat and gsm_up here, to report if smthng is down during normal work of module
-
-  // delay(2000);
-  // if (DEBUG == true && Serial.available()) {
-  //    Serial.write(Serial.read());
-  // }
-  // if (Serial.available()) {
-  //   Serial.write(Serial.read());
-  // }
 }
 
 volatile void chkNewCmd() {
@@ -923,7 +915,139 @@ ISR(TIMER1_COMPA_vect) {
     if (strstr(serial_buff, "+CMTI") != NULL)
     {
       SoftSerial.print("CHK MSG HERE.\n");
-      chkNewCmd();
+
+      // get SMS idx here
+      char buff[90]="";
+      int8_t answer = 0;
+      uint8_t x = 0;
+      long previous;
+      sendATcommand("AT+CMGF=1", "OK", 800);    // sets the SMS mode to text
+      sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 800); // choose sim card memory
+      
+      memset(buff, '\0', 70);
+        
+      int i = 0;
+      
+      Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
+
+      previous = millis();
+      answer = 0;
+      // this loop waits for the NMEA string
+      do {
+          if(Serial.available() != 0){    
+              buff[i] = Serial.read();
+              i++;
+              // check if the desired answer is in the response of the module
+              if (strstr(buff, "OK") != NULL)    
+              {
+                  answer = 1;
+              }
+          }
+          // Waits for the asnwer
+      }
+      while(answer == 0);
+
+      if (strstr(buff, "+CMGL") != NULL) 
+      {    
+        sscanf(buff, "%*[^:]: %d, %*[^,], %[^,], %*[^,], %*[^,], %*s\"\n%*s", &sms_idx, sms_phone_from);
+      } 
+      else 
+      {
+        SoftSerial.println("ERROR GETTING LAST SMS INDEX OR NO UNREAD MESSAGES.");
+      }
+      // reads incom msg here
+      int index = sms_idx;
+      memset(SMS, '\0', 45);
+      answer = 0;
+      x = 0;
+      char cmd[15] = "";
+      char index_str[4] = "";
+      SoftSerial.print("IDX RECV:");
+      SoftSerial.print(index);
+      itoa(index, index_str, 10);
+      
+      if (index > 0 && strstr(sms_phone_from, "9655766572") != NULL)
+      {
+        SoftSerial.print("COND IS OK, READ MSG.\n");
+        sprintf(cmd, "AT+CMGR=%s", index_str);
+        SoftSerial.print("BEFORE READ MSG.\n");
+        answer = sendATcommand(cmd, "+CMGR:", 2000);    // reads the first SMS
+        if (answer == 1)
+        {
+            SoftSerial.print("READ INC MSG.\n");
+            ledFlash(100, OK_PIN, 6);
+            answer = 0;
+            while(Serial.available() == 0);
+            do{
+                if(Serial.available() > 0){    
+                    SMS[x] = Serial.read();
+                    x++;
+                    if (x > sizeof(SMS)-1)    
+                    {
+                        break;
+                    }
+                }
+            } while(Serial.available());    // Waits for the asnwer with time out
+            
+            memset(cmd, '\0', 15); //commented for test
+            sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
+            answer = 0;
+            answer = sendATcommand("AT+CMGD=1", "OK", 1000);
+            if (answer == 1)
+            {
+              SoftSerial.print("RM MSG OK");
+            } 
+            else
+            {
+              SoftSerial.print("ERROR RM MSG");
+            }
+        }
+        else
+        {
+            SoftSerial.print("ERR READ MSG.");
+            SoftSerial.println(answer, DEC);
+            ledFlash(100, ERROR_PIN, 10);
+        }
+      }
+      else 
+      {
+        if (index > 0)
+        {
+            memset(cmd, '\0', 15);
+            sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
+            answer = 0;
+            answer = sendATcommand(cmd, "OK", 1000);
+            if (answer == 1)
+            {
+              SoftSerial.print("RM NOT OWNER MSG OK");
+            } 
+            else
+            {
+              SoftSerial.print("ERROR RM NOT OWNER MSG");
+            }
+        }
+        SoftSerial.println("NO SMS IDX.");
+      }
+      if (strstr(SMS, "GL") != NULL) // found incoming SMS with coordinates request
+      {
+        // sendCoordsInSMS();
+        // ledFlash(50, OK_PIN, 10);
+        SoftSerial.print("SENT LOCATION BY SMS.\n");
+      } 
+      else if (strstr(SMS, "WMA") != NULL)
+      {
+        mode = WATCH_MODE;
+        SoftSerial.print("SWITCHED TO WM.\n");
+      }
+      else if (strstr(SMS, "TMA") != NULL)
+      {
+        mode = TRACK_MODE;
+        SoftSerial.print("SWITCHED TO TM.\n");
+      } 
+      else
+      {
+        SoftSerial.print("NO CMD.\n");
+      }
     }
     sendBatChgLvl();
   } else {
