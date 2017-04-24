@@ -65,7 +65,7 @@ char percent[4]="";
 char voltage[5]="";
 //char bat_chg_info[100]="";
 
-char SMS[5] = "";
+char SMS[45] = "";
 int sms_idx = 0;
 char sms_phone_from[12] = "";
 
@@ -677,7 +677,7 @@ void getLastSMSIndex() {
 }
 
 void readSMS(int index) {
-  memset(SMS, '\0', 4);
+  memset(SMS, '\0', 45);
   int8_t answer;
   uint8_t x = 0;
   char cmd[15] = "";
@@ -710,20 +710,22 @@ void readSMS(int index) {
             if(Serial.available() > 0){    
                 SMS[x] = Serial.read();
                 x++;
+                SoftSerial.print(SMS[x]);
                 SoftSerial.print(x);
                 SoftSerial.print(" ITER.\n");
                 // check if the desired answer (OK) is in the response of the module
-                if (strstr(SMS, "OK") != NULL)    
-                {
-                    answer = 1;
-                    ledFlash(100, OK_PIN, 15);
-                }
+                // if (strstr(SMS, "OK") != NULL)    
+                // {
+                //     answer = 1;
+                //     ledFlash(100, OK_PIN, 15);
+                // }
             }
-        } while(answer == 0);    // Waits for the asnwer with time out
+        } while(Serial.available());    // Waits for the asnwer with time out
         
         // SMS[x] = '\0'; //commented for test
         
-        // SoftSerial.print(SMS);
+        SoftSerial.print(SMS);
+        // TODO: there sprintf ?
 
         memset(cmd, '\0', 15); //commented for test
         sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
