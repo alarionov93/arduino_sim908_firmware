@@ -848,7 +848,7 @@ void loop() {
   //TODO: use check_stat and gsm_up here, to report if smthng is down during normal work of module
 }
 
-volatile void chkNewCmd() {
+void chkNewCmd() {
   SoftSerial.println("SMS GETTING INDEX.");
   getLastSMSIndex();
   SoftSerial.println("SMS READ NEW.");
@@ -937,22 +937,22 @@ ISR(TIMER1_COMPA_vect) {
       answer = 0;
       SoftSerial.print("READ.");
 
-      // this loop waits for the NMEA string
       do {
+          SoftSerial.print("R");
           if(Serial.available() != 0){    
               buff[i] = Serial.read();
               i++;
               // check if the desired answer is in the response of the module
               SoftSerial.print(".");
-              if (strstr(buff, "OK") != NULL)    
+              if (i > sizeof(buff)-1)
               {
-                  answer = 1;
+                break;
               }
           }
           // Waits for the asnwer
       }
-      while(answer == 0);
-
+      while(Serial.available());
+      SoftSerial.print("END READ.\n");
       if (strstr(buff, "+CMGL") != NULL) 
       {    
         sscanf(buff, "%*[^:]: %d, %*[^,], %[^,], %*[^,], %*[^,], %*s\"\n%*s", &sms_idx, sms_phone_from);
@@ -1056,7 +1056,7 @@ ISR(TIMER1_COMPA_vect) {
         SoftSerial.print("NO CMD.\n");
       }
     }
-    if (strstr(buff, "RING") != NULL)
+    if (strstr(serial_buff, "RING") != NULL)
     {
       /* do something here, but need to check number */
     }
