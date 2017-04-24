@@ -924,6 +924,7 @@ ISR(TIMER1_COMPA_vect) {
       long previous;
       Serial.println("AT+CMGF=1");    // sets the SMS mode to text
       SoftSerial.print("SET FORMAT.\n");
+      _delay_ms(100);
       Serial.println("AT+CPMS=\"SM\",\"SM\",\"SM\""); // choose sim card memory
       SoftSerial.print("SET MEM.\n");
       
@@ -936,22 +937,20 @@ ISR(TIMER1_COMPA_vect) {
       previous = millis();
       answer = 0;
       SoftSerial.print("READ.");
-
+      _delay_ms(50);
       do {
-          SoftSerial.print("R");
-          if(Serial.available() != 0){    
-              buff[i] = Serial.read();
-              i++;
-              // check if the desired answer is in the response of the module
-              SoftSerial.print(".");
-              if (i > sizeof(buff)-1)
-              {
-                break;
-              }
-          }
-          // Waits for the asnwer
+            buff[i] = Serial.read();
+            i++;
+            // check if the desired answer is in the response of the module
+            SoftSerial.print(".");
+            if (i > sizeof(buff)-1)
+            {
+              break;
+            }
       }
-      while(Serial.available());
+      while(Serial.available() != 0);
+      _delay_ms(200);
+      SoftSerial.print(buff);
       SoftSerial.print("END READ.\n");
       if (strstr(buff, "+CMGL") != NULL) 
       {    
