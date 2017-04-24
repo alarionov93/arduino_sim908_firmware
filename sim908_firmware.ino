@@ -713,11 +713,10 @@ void readSMS(int index) {
                 SoftSerial.print(x);
                 SoftSerial.print(" ITER.\n");
                 // check if the desired answer (OK) is in the response of the module
-                // if (strstr(SMS, "OK") != NULL)    
-                // {
-                //     answer = 1;
-                //     ledFlash(100, OK_PIN, 15);
-                // }
+                if (x > sizeof(SMS)-1)    
+                {
+                    break;
+                }
             }
         } while(Serial.available());    // Waits for the asnwer with time out
         
