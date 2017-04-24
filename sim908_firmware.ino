@@ -35,16 +35,15 @@ TODO list:
 // }
 // #endif
 
-int button_state = 0;
 int timer = 0;
 bool DEBUG = true;
 uint8_t answer=0;
 char aux_str[60];
 //uint8_t MODE_DELAY = 80000;
-int mode = TRACK_MODE;
-int timer_interrupt_count = 0;
+volatile int mode = TRACK_MODE;
+volatile int timer_interrupt_count = 0;
 int sleep_counter = 0;
-int is_sleep_in_watch_mode = 0;
+volatile int is_sleep_in_watch_mode = 0;
 
 char pin[4]="";
 char apn[21]="internet.beeline.ru";
@@ -63,9 +62,9 @@ char course[11]="";
 char chgMode[2]="";
 char percent[4]="";
 char voltage[5]="";
-//char bat_chg_info[100]="";
+volatile char serial_buff[100]="";
 
-char SMS[45] = "";
+char SMS[100] = "";
 int sms_idx = 0;
 char sms_phone_from[12] = "";
 
@@ -847,29 +846,35 @@ void loop() {
 
     delay(5000); // as getCoordinates();
     delay(10000); // as sendCoordinates();
-    SoftSerial.print("SENT LOCATION BY SMS.");
-  } else {
-      // send coords every 4th time
-      if (sleep_counter > 4)
+    SoftSerial.print("SENT LOCATION BY SMS.\n");
+  } 
+  else if (strstr(SMS, "WMA") != NULL)
+  {
+    mode = WATCH_MODE;
+    SoftSerial.print("SWITCHED TO WM.\n");
+  }
+  else if (strstr(SMS, "TMA") != NULL)
+  {
+    mode = TRACK_MODE;
+    SoftSerial.print("SWITCHED TO TM.\n");
+  } 
+  else
+  {
+      // send coords every 2nd time
+      if (sleep_counter > 2)
       {
         // ledFlash(50, OK_PIN, 10); //before sending coordinates 10 flashes!
 
         delay(5000); // as getCoordinates();
         delay(10000); // as sendCoordinates();
-        SoftSerial.print("SENT LOCATION REGULAR.");
+        SoftSerial.print("SENT LOCATION REGULAR.\n");
         sleep_counter = 0;
       }
       sleep_counter++;
   }
   // test
   SoftSerial.print("AFTER SEND LOCATION.\n");
-  button_state = digitalRead(SWITCH_MODE_PIN); // TODO: read "WM" from sms to activate watch mode and "TM" for track mode
   
-  // if(button_state == HIGH) {
-  //   mode = TRACK_MODE;
-  // } else {
-  //   mode = WATCH_MODE;
-  // }
   if (mode == TRACK_MODE)
   {
     // delay(DEFAULT_TRACK_MODE_DELAY); 
@@ -890,6 +895,7 @@ void loop() {
     is_sleep_in_watch_mode = 1;
     for (int i = 0; i < 100; i++) //sleep for 800 seconds
     {
+      SoftSerial.print("SLEEP AVR.");
       // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
       delay(8000);
     }
@@ -915,6 +921,9 @@ ISR(TIMER1_COMPA_vect) {
   noInterrupts();
   // TODO: after, uncomment this condition
   SoftSerial.print("IN ISR.\n");
+  SoftSerial.print("ISWM: ");
+  SoftSerial.print(is_sleep_in_watch_mode);
+  SoftSerial.print("\n");
   if (is_sleep_in_watch_mode == 1)
   {
     ledFlash(30, OK_PIN, 4);
@@ -925,13 +934,18 @@ ISR(TIMER1_COMPA_vect) {
   if ((timer_interrupt_count % 2) == 0)
   {
     digitalWrite(SIG_PIN, HIGH);
-//    Serial.println("Bat chg here.");
     Serial.println("AT+CBC");
-    do {  
-      SoftSerial.write(Serial.read());
+    int x = 0;
+    do {
+      serial_buff[x] = Serial.read();
+      SoftSerial.write(serial_buff);
+      x++;
     } while (Serial.available() != 0);
+    if (strstr(serial_buff, "+CMTI") !== NULL)
+    {
+      SoftSerial.print("CHK MSG HERE.\n");
+    }
     sendBatChgLvl();
-//    SoftSerial.println("Bat chg here!");
   } else {
     digitalWrite(SIG_PIN, LOW);
   }
