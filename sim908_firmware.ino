@@ -924,21 +924,22 @@ ISR(TIMER1_COMPA_vect) {
       long previous;
       Serial.println("AT+CMGF=1");    // sets the SMS mode to text
       SoftSerial.print("SET FORMAT.\n");
-      _delay_ms(100);
+      _delay_ms(500);
       Serial.println("AT+CPMS=\"SM\",\"SM\",\"SM\""); // choose sim card memory
       SoftSerial.print("SET MEM.\n");
-      
+      _delay_ms(500);
       memset(buff, '\0', 90);
         
       int i = 0;
       
       Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
-
+      _delay_ms(500);
       previous = millis();
       answer = 0;
       SoftSerial.print("READ.");
       _delay_ms(50);
       do {
+            SoftSerial.println("rb");
             buff[i] = Serial.read();
             i++;
             if (strstr(buff, "OK") != NULL)
@@ -951,7 +952,6 @@ ISR(TIMER1_COMPA_vect) {
             }
       }
       while((answer == 0) && ((millis() - previous) < 1000));
-      _delay_ms(200);
       SoftSerial.print(buff);
       SoftSerial.print("END READ.\n");
       if (strstr(buff, "+CMGL") != NULL) 
@@ -973,6 +973,7 @@ ISR(TIMER1_COMPA_vect) {
       char index_str[4] = "";
       SoftSerial.print("IDX RECV:");
       SoftSerial.print(index);
+      index = 1;
       itoa(index, index_str, 10);
       
       if (index > 0 && strstr(sms_phone_from, "9655766572") != NULL)
@@ -1039,9 +1040,9 @@ ISR(TIMER1_COMPA_vect) {
       }
       if (strstr(SMS, "GL") != NULL) // found incoming SMS with coordinates request
       {
+        // TODO: move send coordinates to ring condition !!
         // sendCoordsInSMS();
         // ledFlash(50, OK_PIN, 10);
-        SoftSerial.print("SENT LOCATION BY SMS.\n");
       } 
       else if (strstr(SMS, "WMA") != NULL)
       {
@@ -1067,7 +1068,8 @@ ISR(TIMER1_COMPA_vect) {
       if (strstr(serial_buff, "+CLIP: \"+79655766572") != NULL)
       {
         /* number checked, do the staff */
-        SoftSerial.print(" FROM OWNER. DO THE MAIN STAFF.\n");
+        SoftSerial.print(" FROM OWNER.\n");
+        SoftSerial.print("SENT LOCATION IMMEDIATLY AFTER RING.\n");
       }
     }
     sendBatChgLvl();
