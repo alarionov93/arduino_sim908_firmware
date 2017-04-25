@@ -1,0 +1,298 @@
+GSM is upPin ok, but not registered in the network.Configure module: GSM is set.
+Configure module: GPRS.
+Setting APN\0xffConfigure module: GSM.
+GSM is up,1
+
+OK
+Pin ok, but not registered in the network.Configure module: GSM is set.
+Configure module: GPRS.
+Setting APNGetting GPRS bearerGPRS upConfigure module: GPRS is set.
+Configure module: Test SMS msg.
+
+SMS IDX: SMS FROM:  UNREAD", 0
+
+OK
+SMS TEXT: OK
+Configure module: Test SMS got SMS idx.
+\0x09Index recieved:
+Error 0
+Configure module: Test SMS read SMS here.
+Configure module: Test SMS target sequence NOT found.
+\0xff\0xffAT+CBC
+
++CBC: 0,92,4090
+
+OK
+Configure module: GSM.
+GSM is up,1
+
+OK
+Pin ok, but not registered in the network.Configure module: GSM is set.
+Configure module: GPRS.
+Setting APNGetting GPRS bearer\0xffGPRS upConfigure module: GPRS is set.
+Configure module: Test SMS msg.
+\0x00Configure module: GSM.
+GSM is up,1
+
+OK
+Pin ok, but not registered in the network.Configure module: GSM is set.
+Configure module: GPRS.
+Setting APNGetting GPRS bearer\0xffGPRS upConfigure module: GPRS is set.
+Configure module: Test SMS msg.
+SMS IDX: SMS FROM:  UNREAD", 0
+
+OK
+SMS TEXT: OK
+Configure module: Test SMS got SMS idx.
+\0x09Index recieved:
+Error 0
+\0xffConfigure module: Test SMS read SMS here.
+Configure module: Test SMS target sequence NOT found.
+\0xffAT+CBC
+
++CBC: 0,91,4083
+
+OK
+AT+CBC
+
++CBC: 0,91,4077
+
+OK
+\0xffAT+CBC
+
++CBC: 0,91,4077
+
+OK
+
++CMTI: "SM",3
+AT+CBC
+
++CBC: 0,91,4077
+
+OK
+Configure module: GSM.
+GSM is up,1
+
+OK
+Pin ok, but not registered in the network.Configure module: GSM is set.
+Configure module: GPRS.
+Setting APNGetting GPRS bearer\0xffGPRS upConfigure module: GPRS is set.
+Configure module: Test SMS msg.
+\0x00Configure module: GSM.
+GSM is up,1
+
+OK
+Pin ok, but not registered in the network.Configure module: GSM is set.
+Configure module: GPRS.
+Setting APNGetting GPRS bearer\0xffGPRS upConfigure module: GPRS is set.
+Configure module: Test SMS msg.
+SMS IDX: SMS FROM:  UNREAD", 0
+
+OK
+SMS TEXT: OK
+Configure module: Test SMS got SMS idx.
+\0x09Index recieved:
+Error 0
+\0xffConfigure module: Test SMS read SMS here.
+Configure module: Test SMS target sequence NOT found.
+\0xffAT+CBC
+
++CBC: 0,91,4077
+
+OK
+AT+CBC
+
++CBC: 0,91,4083
+
+OK
+\0xffAT+CBC
+
++CBC: 0,91,4083
+
+OK
+Setting APNGetting GPRS bearerGPRS up
+Configure module: GPRS is set.
+Configure module: Test SMS msg.
+SMS IDX: SMS FROM:  UNREAD", 0
+
+OK
+SMS TEXT: OK
+Configure module: Test SMS got SMS idx.
+\0x09Index recieved:
+Error 0
+Configure module: Test SMS read SMS here.
+Configure module: Test SMS target sequence NOT found.
+\0xff\0xffAT+CBC
+
++CBC: 1,100,4221
+
+OK
+Configure module: GSM.
+GSM is up,1
+
+OK
+Pin ok, but not registered in the network.Configure module: GSM is set.
+Configure module: GPRS.
+Setting APNGetting GPRS bearer\0xffGPRS upConfigure module: GPRS is set.
+Configure module: Test SMS msg.
+SMS IDX: SMS FROM:  UNREAD", 0
+
+OK
+SMS TEXT: OK
+Configure module: Test SMS got SMS idx.
+\0x09Index recieved:
+Error 0
+\0xffConfigure module: Test SMS read SMS here.
+Configure module: Test SMS target sequence NOT found.
+\0xffAT+CBC
+
++CBC: 1,100,4201
+
+OK
+AT+CBC
+
++CBC: 1,99,4195
+
+OK
+\0xffAT+CBC
+
++CBC: 1,100,4208
+
+OK
+AT+CBC
+
++CBC: 1,100,4201
+
+OK
+\0xffAT+CBC
+
++CBC: 1,100,4208
+
+OK
+AT+CBC
+
++CBC: 1,100,4208
+
+OK
+\0xffAT+CBC
+
++CBC: 1,100,4214
+
+OK
+AT+CBC
+
++CBC: 1,100,4201
+
+OK
+\0xffAT+CBC
+
++CBC: 1,100,4221
+
+OK
+AT+CBC
+
++CBC: 1,100,4214
+
+OK
+\0xffAT+CBC
+
++CBC: 1,100,4221
+
+OK
+AT+CBC
+
++CBC: 1,100,4214
+
+OK
+\0xffSetting APNGetting GPRS bearer\0xffGPRS upConfigure module: GSM.
+GSM is up,1
+
+OK
+Pin ok, but not registered in the network.Configure module: GSM is set.
+Configure module: GPRS.
+Setting APNGetting GPRS bearerGPRS upConfigure module: GPRS is set.
+Configure module: Test SMS msg.
+
+Data0:  
+AT+CMGL="REC UNREAD", 0
+
+OK
+Configure module: Test SMS got SMS idx.
+\0x09Index recieved:
+Error 0
+Configure module: Test SMS read SMS here.
+Configure module: Test SMS target sequence NOT found.
+\0xff\0xffAT+CBC
+
++CBC: 2,100,4221
+
+OK
+AT+CBC
+
++CBC: 2,100,4221
+
+OK
+\0xffAT+CBC
+
++CBC: 2,100,4221
+
+OK
+AT+CBC
+
++CBC: 2,100,4221
+
+OK
+
++CMTI: "SM",1
+Configure module: GSM.
+GSM is up,1
+
+OK
+Pin ok, but not registered in the network.Configure module: GSM is set.
+Configure module: GPRS.
+Setting APNGetting GPRS bearer\0xffGPRS upConfigure module: GPRS is set.
+Configure module: Test SMS msg.
+Data0:  
+AT+CMGL="REC UNREAD", 0
+
++CMGL
+Data1:   1
+Data2:  "REC UNREAD"
+\0x00Configure module: GSM.
+GSM is up,1
+
+OK
+Pin ok, but not registered in the network.Configure module: GSM is set.
+Configure module: GPRS.
+Setting APNGetting GPRS bearer\0xffGPRS upConfigure module: GPRS is set.
+Configure module: Test SMS msg.
+Data0:  
+AT+CMGL="REC UNREAD", 0
+
+OK
+Configure module: Test SMS got SMS idx.
+\0x09Index recieved:
+Error 0
+\0xffConfigure module: Test SMS read SMS here.
+Configure module: Test SMS target sequence NOT found.
+\0xffAT+CBC
+
++CBC: 2,100,4221
+
+OK
+AT+CBC
+
++CBC: 2,100,4221
+
+OK
+\0xffAT+CBC
+
++CBC: 2,100,4227
+
+OK
+AT+CBC
+
++CBC: 2,100,4227
+
+OK
+\0xff

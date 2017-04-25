@@ -1,0 +1,428 @@
+IN ISR.
+
+
+GPS Ready
+
+Call Ready
+
++CREG: 1
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,87,4018
+
+OK
+SENT LOCATION REGULAR.
+TRACK MODE ACTIVE.
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4103
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4103
+
+OK
+
+RING
+
++CLIP: "+79655766572INC CALL FROM OWNER.
+SENT LOCATION IMMEDIATLY AFTER RING.
+IN ISR.
+IN ISR.
+AT+CBC
+AT+CLIP=1
+
++CBC: 0,93,4103
+
+OK
+
+RING
+
++CLIP: "+7INC CALLIN ISR.
+IN ISR.
+AT+CBC
+AT+CLIP=1
+
++CBC: 0,90,4070
+
+OK
+
+RING
+
++CLIP: "+7INC CALLIN ISR.
+IN ISR.
+AT+CBC
+AT+CLIP=1
+
++CBC: 0,93,4103
+
+OK
+
+RING
+
++CLIP: "+7INC CALLIN ISR.
+IN ISR.
+AT+CBC
+AT+CLIP=1
+
++CBC: 0,93,4109
+
+OK
+SENT LOCATION REGULAR.
+TRACK MODE ACTIVE.
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+
+RING
+
++CLIP: "+79655766572INC CALL FROM OWNER.
+SENT LOCATION IMMEDIATLY AFTER RING.
+IN ISR.
+IN ISR.
+AT+CBC
+AT+CLIP=1
+
++CBC: 0,91,4077
+
+OK
+
+RING
+
++CLIP: "+7INC CALLIN ISR.
+IN ISR.
+AT+CBC
+AT+CLIP=1
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+SENT LOCATION REGULAR.
+TRACK MODE ACTIVE.
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4103
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,92,4096
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4103
+
+OK
+SENT LOCATION REGULAR.
+TRACK MODE ACTIVE.
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+SENT LOIN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+CATION REGULAR.
+TRACK MODE ACTIVE.
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+SENT LOCATION REGULAR.
+TRACK MODE ACTIVE.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,93,4109
+
+OK
+IN ISR.
+IN ISR.
+AT+CBC
+
++CBC: 0,92,4096
+
+OK
+
++CMTI: "SM",3
+CHK MSG HERE.
+SET FORMAT.
+SET MEM.
+READ.rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+rb
+\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0xff\0x04\0x04\0x04\0x04\0xf8END READ.
+ERROR GETTING LAST SMS INDEX OR NO UNREAD MESSAGES.
+IDX RECV:0ERROR RM NOT OWNER MSGNO SMS IDX.
+NO CMD.
+IN ISR.
+IN ISR.
+ATBC
+AT+CMGF=1
+AT+CPMS="SM","SM","SM"
+AT+CMGL="REC UNREAD", IN ISR.
+IN ISR.
+AT+CBC
