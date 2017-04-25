@@ -1064,10 +1064,10 @@ ISR(TIMER1_COMPA_vect) {
       _delay_ms(100);
       SoftSerial.print("INC CALL");
       /* do something here, but need to check number */
-      if (strstr(serial_buff, "+CLIP:+79655766572") != NULL)
+      if (strstr(serial_buff, "+CLIP: \"+79655766572") != NULL)
       {
         /* number checked, do the staff */
-        SoftSerial.print(" FROM OWNER.\n");
+        SoftSerial.print(" FROM OWNER. DO THE MAIN STAFF.\n");
       }
     }
     sendBatChgLvl();
