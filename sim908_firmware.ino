@@ -1060,11 +1060,14 @@ ISR(TIMER1_COMPA_vect) {
     }
     if (strstr(serial_buff, "RING") != NULL)
     {
+      Serial.print("AT+CLIP=1\n");
+      _delay_ms(100);
+      SoftSerial.print("INC CALL");
       /* do something here, but need to check number */
-      // TODO: send AT command AT+CLIP=1 !!
       if (strstr(serial_buff, "+CLIP:+79655766572") != NULL)
       {
         /* number checked, do the staff */
+        SoftSerial.print(" FROM OWNER.\n");
       }
     }
     sendBatChgLvl();
