@@ -928,7 +928,7 @@ ISR(TIMER1_COMPA_vect) {
       Serial.println("AT+CPMS=\"SM\",\"SM\",\"SM\""); // choose sim card memory
       SoftSerial.print("SET MEM.\n");
       
-      memset(buff, '\0', 70);
+      memset(buff, '\0', 90);
         
       int i = 0;
       
@@ -941,8 +941,6 @@ ISR(TIMER1_COMPA_vect) {
       do {
             buff[i] = Serial.read();
             i++;
-            // check if the desired answer is in the response of the module
-            SoftSerial.print(".");
             if (i > sizeof(buff)-1)
             {
               break;
@@ -961,6 +959,7 @@ ISR(TIMER1_COMPA_vect) {
       {
         SoftSerial.println("ERROR GETTING LAST SMS INDEX OR NO UNREAD MESSAGES.");
       }
+      // TODO: comment above cycle of getting sms idx, and try to read 1st message in below code
       // reads incom msg here
       int index = sms_idx;
       memset(SMS, '\0', 45);
@@ -977,7 +976,7 @@ ISR(TIMER1_COMPA_vect) {
         SoftSerial.print("COND IS OK, READ MSG.\n");
         sprintf(cmd, "AT+CMGR=%s", index_str);
         SoftSerial.print("BEFORE READ MSG.\n");
-        answer = sendATcommand(cmd, "+CMGR:", 2000);    // reads the first SMS
+        answer = Serial.println(cmd);  // reads the first SMS
         if (answer == 1)
         {
             SoftSerial.print("READ INC MSG.\n");
@@ -998,7 +997,7 @@ ISR(TIMER1_COMPA_vect) {
             memset(cmd, '\0', 15); //commented for test
             sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
             answer = 0;
-            answer = sendATcommand("AT+CMGD=1", "OK", 1000);
+            Serial.println(cmd);
             if (answer == 1)
             {
               SoftSerial.print("RM MSG OK");
@@ -1022,7 +1021,7 @@ ISR(TIMER1_COMPA_vect) {
             memset(cmd, '\0', 15);
             sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
             answer = 0;
-            answer = sendATcommand(cmd, "OK", 1000);
+            Serial.println(cmd);
             if (answer == 1)
             {
               SoftSerial.print("RM NOT OWNER MSG OK");
@@ -1058,6 +1057,11 @@ ISR(TIMER1_COMPA_vect) {
     if (strstr(serial_buff, "RING") != NULL)
     {
       /* do something here, but need to check number */
+      // TODO: send AT command AT+CLIP=1 !!
+      if (strstr(serial_buff, "+CLIP:+79655766572") != NULL)
+      {
+        /* number checked, do the staff */
+      }
     }
     sendBatChgLvl();
   } else {
