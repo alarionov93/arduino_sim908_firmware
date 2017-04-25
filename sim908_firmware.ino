@@ -950,7 +950,7 @@ ISR(TIMER1_COMPA_vect) {
               break;
             }
       }
-      while((answer == 0) && ((millis() - previous) < timeout));
+      while((answer == 0) && ((millis() - previous) < 1000));
       _delay_ms(200);
       SoftSerial.print(buff);
       SoftSerial.print("END READ.\n");
