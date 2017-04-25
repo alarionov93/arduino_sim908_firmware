@@ -941,12 +941,16 @@ ISR(TIMER1_COMPA_vect) {
       do {
             buff[i] = Serial.read();
             i++;
+            if (strstr(buff, "OK") != NULL)
+            {
+              answer = 1;
+            }
             if (i > sizeof(buff)-1)
             {
               break;
             }
       }
-      while(Serial.available() != 0);
+      while((answer == 0) && ((millis() - previous) < timeout));
       _delay_ms(200);
       SoftSerial.print(buff);
       SoftSerial.print("END READ.\n");
