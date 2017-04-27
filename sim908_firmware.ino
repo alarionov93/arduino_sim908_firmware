@@ -66,7 +66,6 @@ volatile char buff[90]="";
 
 volatile char SMS[100] = "";
 volatile int sms_idx = 0;
-volatile char sms_idx_str[2] = "";
 volatile char sms_phone_from[12] = "";
 
 SoftwareSerial SoftSerial(SS_RX, SS_TX); // RX, TX
@@ -1009,6 +1008,7 @@ ISR(TIMER1_COMPA_vect) {
     Serial.println("AT+CBC");
     int x = 0;
     char serial_buff[100]="";
+    char sms_idx_str[3] = "";
     memset(serial_buff, '\0', 100);
     do {
       serial_buff[x] = Serial.read();
