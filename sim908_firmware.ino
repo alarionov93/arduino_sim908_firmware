@@ -922,47 +922,42 @@ ISR(TIMER1_COMPA_vect) {
       int8_t answer = 0;
       uint8_t x = 0;
       long previous;
-      Serial.println("AT+CMGF=1");    // sets the SMS mode to text
-      SoftSerial.print("SET FORMAT.\n");
-      _delay_ms(500);
-      Serial.println("AT+CPMS=\"SM\",\"SM\",\"SM\""); // choose sim card memory
-      SoftSerial.print("SET MEM.\n");
-      _delay_ms(500);
-      memset(buff, '\0', 90);
+      // Serial.println("AT+CMGF=1");    // sets the SMS mode to text
+      // SoftSerial.print("SET FORMAT.\n");
+      // Serial.println("AT+CPMS=\"SM\",\"SM\",\"SM\""); // choose sim card memory
+      // SoftSerial.print("SET MEM.\n");
+      // memset(buff, '\0', 90);
         
-      int i = 0;
+      // int i = 0;
       
-      Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
-      _delay_ms(500);
-      previous = millis();
-      answer = 0;
-      SoftSerial.print("READ.");
-      _delay_ms(50);
-      do {
-            buff[i] = Serial.read();
-            SoftSerial.print(buff[i]);
-            i++;
-            if (strstr(buff, "OK") != NULL)
-            {
-              answer = 1;
-            }
-            if (i > sizeof(buff)-1)
-            {
-              break;
-            }
-      }
-      while((answer == 0) && ((millis() - previous) < 1000));
+      // Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
+      // previous = millis();
+      // answer = 0;
+      // do {
+      //       buff[i] = Serial.read();
+      //       SoftSerial.print(buff[i]);
+      //       i++;
+      //       if (strstr(buff, "OK") != NULL)
+      //       {
+      //         answer = 1;
+      //       }
+      //       if (i > sizeof(buff)-1)
+      //       {
+      //         break;
+      //       }
+      // }
+      // while((answer == 0) && ((millis() - previous) < 1000));
       
-      SoftSerial.print("END READ.\n");
-      if (strstr(buff, "+CMGL") != NULL) 
-      {    
-        sscanf(buff, "%*[^:]: %d, %*[^,], %[^,], %*[^,], %*[^,], %*s\"\n%*s", &sms_idx, sms_phone_from);
-        SoftSerial.print("GOT DATA.\n");
-      } 
-      else 
-      {
-        SoftSerial.println("ERROR GETTING LAST SMS INDEX OR NO UNREAD MESSAGES.");
-      }
+      // SoftSerial.print("END READ.\n");
+      // if (strstr(buff, "+CMGL") != NULL) 
+      // {    
+      //   sscanf(buff, "%*[^:]: %d, %*[^,], %[^,], %*[^,], %*[^,], %*s\"\n%*s", &sms_idx, sms_phone_from);
+      //   SoftSerial.print("GOT DATA.\n");
+      // } 
+      // else 
+      // {
+      //   SoftSerial.println("ERROR GETTING LAST SMS INDEX OR NO UNREAD MESSAGES.");
+      // }
       // TODO: comment above cycle of getting sms idx, and try to read 1st message in below code
       // reads incom msg here
       int index = sms_idx;
@@ -971,9 +966,9 @@ ISR(TIMER1_COMPA_vect) {
       x = 0;
       char cmd[15] = "";
       char index_str[4] = "";
+      index = 1;
       SoftSerial.print("IDX RECV:");
       SoftSerial.print(index);
-      index = 1;
       itoa(index, index_str, 10);
       
       if (index > 0 && strstr(sms_phone_from, "9655766572") != NULL)
@@ -1038,6 +1033,7 @@ ISR(TIMER1_COMPA_vect) {
         // TODO: move send coordinates to ring condition !!
         // sendCoordsInSMS();
         // ledFlash(50, OK_PIN, 10);
+        SoftSerial.print("GL CMD.\n");
       } 
       else if (strstr(SMS, "WMA") != NULL)
       {
@@ -1067,6 +1063,7 @@ ISR(TIMER1_COMPA_vect) {
         SoftSerial.print("SENT LOCATION IMMEDIATLY AFTER RING.\n");
       }
     }
+    // TODO: think, if it is more good to remove all messages and read always 1st ?
     sendBatChgLvl();
   } else {
     digitalWrite(SIG_PIN, LOW);
