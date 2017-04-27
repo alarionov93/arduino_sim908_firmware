@@ -1026,10 +1026,11 @@ ISR(TIMER1_COMPA_vect) {
       sscanf(serial_buff, "%*[^:]: %*[^,],%d", &sms_idx);
     }
 
-    if (sizeof(sms_idx_str) > 0)
+    if (sms_idx > 0)
     {
       // SoftSerial.println(sms_idx);
-      SoftSerial.println(sms_idx_str);
+      SoftSerial.println(sms_idx);
+      // read sms here
     }
 
     // if (strstr(serial_buff, "+CMTI") != NULL)
