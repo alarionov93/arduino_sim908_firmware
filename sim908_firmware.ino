@@ -297,7 +297,7 @@ void gps_up() {
   }
 }
 
-void sms_conf() {
+uint8_t sms_conf() {
   uint8_t answer = 0;
   uint8_t sms_format = 0;
   uint8_t res = 0;
