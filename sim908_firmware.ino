@@ -1023,13 +1023,13 @@ ISR(TIMER1_COMPA_vect) {
     if (strstr(serial_buff, "CMTI:") != NULL) {
       ledFlash(100, OK_PIN, 15);
       SoftSerial.println(serial_buff);
-      sscanf(serial_buff, "%*[^:]: %*[^,], %d", &sms_idx);
+      sscanf(serial_buff, "%*[^:]: \"%*[^,]\", %s", sms_idx_str);
     }
 
-    if (sms_idx > 0)
+    if (sizeof(sms_idx_str) > 0)
     {
-      SoftSerial.println(sms_idx);
-      // SoftSerial.println(sms_idx_str);
+      // SoftSerial.println(sms_idx);
+      SoftSerial.println(sms_idx_str);
     }
 
     // if (strstr(serial_buff, "+CMTI") != NULL)
