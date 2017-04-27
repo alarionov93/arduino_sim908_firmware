@@ -930,28 +930,18 @@ ISR(TIMER1_COMPA_vect) {
   ledFlash(30, OK_PIN, 4);
   if ((timer_interrupt_count % 2) == 1)
   {
-    int x = 0;
-    char serial_buff[100]="";
-    memset(serial_buff, '\0', 100);
-    do {
-      serial_buff[x] = Serial.read();
-      x++;
-      if (x > sizeof(serial_buff)-1)
-      {
-        break;
-      }
-    } while (Serial.available() != 0);
-    SoftSerial.print(serial_buff);
-
-    if (strstr(serial_buff, "+CMTI") != NULL) {
-      ledFlash(100, OK_PIN, 15);
-      sscanf(serial_buff, "%*[^:]: %*[^,], %d", &sms_idx);
-    }
-
-    if (sms_idx > 0)
-    {
-      SoftSerial.println(sms_idx);
-    }
+    // int x = 0;
+    // char serial_buff[100]="";
+    // memset(serial_buff, '\0', 100);
+    // do {
+    //   serial_buff[x] = Serial.read();
+    //   x++;
+    //   if (x > sizeof(serial_buff)-1)
+    //   {
+    //     break;
+    //   }
+    // } while (Serial.available() != 0);
+    // SoftSerial.print(serial_buff);
 
     // if (strstr(serial_buff, "+CMTI") != NULL)
     // {
@@ -1027,6 +1017,16 @@ ISR(TIMER1_COMPA_vect) {
       }
     } while (Serial.available() != 0);
     SoftSerial.print(serial_buff);
+
+    if (strstr(serial_buff, "CMTI:") != NULL) {
+      ledFlash(100, OK_PIN, 15);
+      sscanf(serial_buff, "%*[^:]: %*[^,], %d", &sms_idx);
+    }
+
+    if (sms_idx > 0)
+    {
+      SoftSerial.println(sms_idx);
+    }
 
     // if (strstr(serial_buff, "+CMTI") != NULL)
     // {
