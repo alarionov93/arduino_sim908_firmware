@@ -297,6 +297,32 @@ void gps_up() {
   }
 }
 
+void sms_conf() {
+  uint8_t answer = 0;
+  uint8_t sms_format = 0;
+  uint8_t res = 0;
+
+  sms_format = sendATcommand("AT+CMGF=1", "OK", 2000); // sets the SMS mode to text
+  if (sms_format)
+  {
+    answer = sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 2000);
+    if (answer)
+    {
+      SoftSerial.print("MESSAGES CONFIGURED.\n");
+      res = 1;
+    }
+    else
+    {
+      SoftSerial.print("ERR SET SMS MEM.\n");
+    }
+  }
+  else
+  {
+    SoftSerial.print("ERR SET SMS FORMAT.\n");
+  }
+  return res;
+}
+
 void gsm_up() {
  uint8_t reg=0;
  uint8_t pin=0;
@@ -310,7 +336,7 @@ void gsm_up() {
   }
   while (!reg) { 
     // x++;
-    reg = sendATcommand("AT+CREG?", "1", 1000);
+    reg = sendATcommand("AT+CREG?", "1", 4000);
     // if (x == 10)
     // {
     //   break;
@@ -321,9 +347,16 @@ void gsm_up() {
     digitalWrite(OK_PIN, HIGH); // TODO: SHOW OK
     delay(2000);
     digitalWrite(OK_PIN, LOW);
+    if (sms_conf() != 1) {
+      ledFlash(100, ERROR_PIN, 3);
+    }
   }
   if (pin && reg == 0) {
     SoftSerial.write("PIN OK, GSM ERR.\n");
+    if (sms_conf() != 1) {
+      ledFlash(100, ERROR_PIN, 3);
+      delay(500);
+    }
     ledFlash(100, ERROR_PIN, 5);
   }
 }
@@ -922,14 +955,33 @@ ISR(TIMER1_COMPA_vect) {
       int8_t answer = 0;
       uint8_t x = 0;
       long previous;
+      int i = 0;
+      /*DEBUG CODE*/
+
+      Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
+      previous = millis();
+      do {
+            buff[i] = Serial.read();
+            SoftSerial.print(buff[i]);
+            i++;
+            if (strstr(buff, "OK") != NULL)
+            {
+              answer = 1;
+            }
+            if (i > sizeof(buff)-1)
+            {
+              break;
+            }
+      }
+      while((answer == 0) && ((millis() - previous) < 1000));
+
+      /*DEBUG CODE*/
       // Serial.println("AT+CMGF=1");    // sets the SMS mode to text
       // SoftSerial.print("SET FORMAT.\n");
       // Serial.println("AT+CPMS=\"SM\",\"SM\",\"SM\""); // choose sim card memory
       // SoftSerial.print("SET MEM.\n");
       // memset(buff, '\0', 90);
-        
-      // int i = 0;
-      
+
       // Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
       // previous = millis();
       // answer = 0;
@@ -960,74 +1012,74 @@ ISR(TIMER1_COMPA_vect) {
       // }
       // TODO: comment above cycle of getting sms idx, and try to read 1st message in below code
       // reads incom msg here
-      int index = sms_idx;
-      memset(SMS, '\0', 45);
-      answer = 0;
-      x = 0;
-      char cmd[15] = "";
-      char index_str[4] = "";
-      index = 1;
-      SoftSerial.print("IDX RECV:");
-      SoftSerial.print(index);
-      itoa(index, index_str, 10);
+      // int index = sms_idx;
+      // memset(SMS, '\0', 45);
+      // answer = 0;
+      // x = 0;
+      // char cmd[15] = "";
+      // char index_str[4] = "";
+      // index = 1;
+      // SoftSerial.print("IDX RECV:");
+      // SoftSerial.print(index);
+      // itoa(index, index_str, 10);
       
-      if (index > 0 && strstr(sms_phone_from, "9655766572") != NULL)
-      {
-        SoftSerial.print("COND IS OK, READ MSG.\n");
-        sprintf(cmd, "AT+CMGR=%s", index_str);
-        SoftSerial.print("BEFORE READ MSG.\n");
-        Serial.println(cmd);  // reads the first SMS
-        SoftSerial.print("READ INC MSG.\n");
-        ledFlash(100, OK_PIN, 6);
-        answer = 0;
-        while(Serial.available() == 0);
-        do{
-            if(Serial.available() > 0){    
-                SMS[x] = Serial.read();
-                x++;
-                if (x > sizeof(SMS)-1)    
-                {
-                    break;
-                }
-            }
-        } while(Serial.available());    // Waits for the asnwer with time out
+      // if (index > 0 && strstr(sms_phone_from, "9655766572") != NULL)
+      // {
+      //   SoftSerial.print("COND IS OK, READ MSG.\n");
+      //   sprintf(cmd, "AT+CMGR=%s", index_str);
+      //   SoftSerial.print("BEFORE READ MSG.\n");
+      //   Serial.println(cmd);  // reads the first SMS
+      //   SoftSerial.print("READ INC MSG.\n");
+      //   ledFlash(100, OK_PIN, 6);
+      //   answer = 0;
+      //   while(Serial.available() == 0);
+      //   do{
+      //       if(Serial.available() > 0){    
+      //           SMS[x] = Serial.read();
+      //           x++;
+      //           if (x > sizeof(SMS)-1)    
+      //           {
+      //               break;
+      //           }
+      //       }
+      //   } while(Serial.available());    // Waits for the asnwer with time out
         
-        memset(cmd, '\0', 15); //commented for test
-        sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
-        answer = 0;
-        Serial.println(cmd);
-        if (answer == 1)
-        {
-          SoftSerial.print("RM MSG OK");
-        } 
-        else
-        {
-          SoftSerial.print("ERROR RM MSG");
-        }
-        SoftSerial.print("ERR READ MSG.");
-        SoftSerial.println(answer, DEC);
-        ledFlash(100, ERROR_PIN, 10);
-      }
-      else 
-      {
-        if (index > 0)
-        {
-          memset(cmd, '\0', 15);
-          sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
-          answer = 0;
-          Serial.println(cmd);
-          if (answer == 1)
-          {
-            SoftSerial.print("RM NOT OWNER MSG OK");
-          } 
-          else
-          {
-            SoftSerial.print("ERROR RM NOT OWNER MSG");
-          }
-        } else {
-          SoftSerial.println("NO SMS IDX.");
-        }
-      }
+      //   memset(cmd, '\0', 15); //commented for test
+      //   sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
+      //   answer = 0;
+      //   Serial.println(cmd);
+      //   if (answer == 1)
+      //   {
+      //     SoftSerial.print("RM MSG OK");
+      //   } 
+      //   else
+      //   {
+      //     SoftSerial.print("ERROR RM MSG");
+      //   }
+      //   SoftSerial.print("ERR READ MSG.");
+      //   SoftSerial.println(answer, DEC);
+      //   ledFlash(100, ERROR_PIN, 10);
+      // }
+      // else 
+      // {
+      //   if (index > 0)
+      //   {
+      //     memset(cmd, '\0', 15);
+      //     sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
+      //     answer = 0;
+      //     Serial.println(cmd);
+      //     if (answer == 1)
+      //     {
+      //       SoftSerial.print("RM NOT OWNER MSG OK");
+      //     } 
+      //     else
+      //     {
+      //       SoftSerial.print("ERROR RM NOT OWNER MSG");
+      //     }
+      //   } else {
+      //     SoftSerial.println("NO SMS IDX.");
+      //   }
+      // }
       if (strstr(SMS, "GL") != NULL) // found incoming SMS with coordinates request
       {
         // TODO: move send coordinates to ring condition !!
