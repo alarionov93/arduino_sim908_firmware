@@ -62,9 +62,11 @@ char chgMode[2]="";
 char percent[4]="";
 char voltage[5]="";
 volatile char serial_buff[100]="";
+volatile char buff[90]="";
 
 volatile char SMS[100] = "";
 volatile int sms_idx = 0;
+volatile char sms_idx_str[2] = "";
 volatile char sms_phone_from[12] = "";
 
 SoftwareSerial SoftSerial(SS_RX, SS_TX); // RX, TX
@@ -1020,12 +1022,14 @@ ISR(TIMER1_COMPA_vect) {
 
     if (strstr(serial_buff, "CMTI:") != NULL) {
       ledFlash(100, OK_PIN, 15);
+      SoftSerial.println(serial_buff);
       sscanf(serial_buff, "%*[^:]: %*[^,], %d", &sms_idx);
     }
 
     if (sms_idx > 0)
     {
       SoftSerial.println(sms_idx);
+      // SoftSerial.println(sms_idx_str);
     }
 
     // if (strstr(serial_buff, "+CMTI") != NULL)
