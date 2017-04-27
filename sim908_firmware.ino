@@ -952,6 +952,7 @@ ISR(TIMER1_COMPA_vect) {
 
       // get SMS idx here
       char buff[90]="";
+      char d_buff[90]=""; // double for debug
       int8_t answer = 0;
       uint8_t x = 0;
       long previous;
@@ -960,8 +961,11 @@ ISR(TIMER1_COMPA_vect) {
 
       Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
       previous = millis();
+      memset(buff, '\0', 90);
+      memset(d_buff, '\0', 90);
       do {
             buff[i] = Serial.read();
+            d_buff[i] = (char) buff[i];
             SoftSerial.print(buff[i]);
             i++;
             if (strstr(buff, "OK") != NULL)
@@ -974,6 +978,8 @@ ISR(TIMER1_COMPA_vect) {
             }
       }
       while((answer == 0) && ((millis() - previous) < 1000));
+      SoftSerial.print("END.\n");
+      SoftSerial.println(d_buff);
 
       /*DEBUG CODE*/
       // Serial.println("AT+CMGF=1");    // sets the SMS mode to text
