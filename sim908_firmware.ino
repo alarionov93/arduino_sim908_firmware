@@ -943,62 +943,72 @@ ISR(TIMER1_COMPA_vect) {
     } while (Serial.available() != 0);
     SoftSerial.print(serial_buff);
 
-    if (strstr(serial_buff, "+CMTI") != NULL)
-    {
-      SoftSerial.print("CHK MSG HERE.\n");
-
-      // get SMS idx here
-      char buff[90]="";
-      char d_buff[90]=""; // double for debug
-      int8_t answer = 0;
-      uint8_t x = 0;
-      long previous;
-      int i = 0;
-      /*DEBUG CODE*/
-
-      Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
-      previous = millis();
-      memset(buff, '\0', 90);
-      memset(d_buff, '\0', 90);
-      do {
-            buff[i] = Serial.read();
-            d_buff[i] = (char) buff[i];
-            SoftSerial.print(buff[i]);
-            i++;
-            if (strstr(buff, "OK") != NULL)
-            {
-              answer = 1;
-            }
-            if (i > sizeof(buff)-1)
-            {
-              break;
-            }
-      }
-      while((answer == 0) && ((millis() - previous) < 1000));
-      SoftSerial.print("END.\n");
-      // SoftSerial.println(d_buff);
-      // if (strstr(SMS, "GL") != NULL) // found incoming SMS with coordinates request
-      // {
-      //   // TODO: move send coordinates to ring condition !!
-      //   // sendCoordsInSMS();
-      //   // ledFlash(50, OK_PIN, 10);
-      //   SoftSerial.print("GL CMD.\n");
-      // } 
-      // else if (strstr(SMS, "WMA") != NULL)
-      // {
-      //   mode = WATCH_MODE;
-      //   SoftSerial.print("SWITCHED TO WM.\n");
-      // }
-      // else if (strstr(SMS, "TMA") != NULL)
-      // {
-      //   mode = TRACK_MODE;
-      //   SoftSerial.print("SWITCHED TO TM.\n");
-      // } 
-      // else
-      // {
-      //   SoftSerial.print("NO CMD.\n");
-      // }
+    if (strstr(serial_buff, "+CMTI") != NULL) {
+      ledFlash(100, OK_PIN, 15);
+      sscanf(serial_buff, "%*[^:]: %*[^,], %d", &sms_idx);
     }
+
+    if (sms_idx > 0)
+    {
+      SoftSerial.println(sms_idx);
+    }
+
+    // if (strstr(serial_buff, "+CMTI") != NULL)
+    // {
+    //   SoftSerial.print("CHK MSG HERE.\n");
+
+    //   // get SMS idx here
+    //   char buff[90]="";
+    //   char d_buff[90]=""; // double for debug
+    //   int8_t answer = 0;
+    //   uint8_t x = 0;
+    //   long previous;
+    //   int i = 0;
+    //   /*DEBUG CODE*/
+
+    //   Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
+    //   previous = millis();
+    //   memset(buff, '\0', 90);
+    //   memset(d_buff, '\0', 90);
+    //   do {
+    //         buff[i] = Serial.read();
+    //         d_buff[i] = (char) buff[i];
+    //         SoftSerial.print(buff[i]);
+    //         i++;
+    //         if (strstr(buff, "OK") != NULL)
+    //         {
+    //           answer = 1;
+    //         }
+    //         if (i > sizeof(buff)-1)
+    //         {
+    //           break;
+    //         }
+    //   }
+    //   while((answer == 0) && ((millis() - previous) < 1000));
+    //   SoftSerial.print("END.\n");
+    //   // SoftSerial.println(d_buff);
+    //   // if (strstr(SMS, "GL") != NULL) // found incoming SMS with coordinates request
+    //   // {
+    //   //   // TODO: move send coordinates to ring condition !!
+    //   //   // sendCoordsInSMS();
+    //   //   // ledFlash(50, OK_PIN, 10);
+    //   //   SoftSerial.print("GL CMD.\n");
+    //   // } 
+    //   // else if (strstr(SMS, "WMA") != NULL)
+    //   // {
+    //   //   mode = WATCH_MODE;
+    //   //   SoftSerial.print("SWITCHED TO WM.\n");
+    //   // }
+    //   // else if (strstr(SMS, "TMA") != NULL)
+    //   // {
+    //   //   mode = TRACK_MODE;
+    //   //   SoftSerial.print("SWITCHED TO TM.\n");
+    //   // } 
+    //   // else
+    //   // {
+    //   //   SoftSerial.print("NO CMD.\n");
+    //   // }
+    // }
   }
 
   if ((timer_interrupt_count % 2) == 0)
