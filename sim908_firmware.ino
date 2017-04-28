@@ -1005,7 +1005,7 @@ ISR(TIMER1_COMPA_vect) {
   if ((timer_interrupt_count % 2) == 0)
   {
     digitalWrite(SIG_PIN, HIGH);
-    Serial.println("AT+CBC");
+    // Serial.println("AT+CBC");
     int x = 0;
     char serial_buff[100]="";
     char sms_idx_str[3] = "";
