@@ -897,14 +897,6 @@ ISR(TIMER1_COMPA_vect) {
   ledFlash(30, OK_PIN, 4);
   if ((timer_interrupt_count % 2) == 1)
   {
-      // if (strstr(SMS, "GL") != NULL) // found incoming SMS with coordinates request
-      // {
-      //   // TODO: move send coordinates to ring condition !!
-      //   // sendCoordsInSMS();
-      //   // ledFlash(50, OK_PIN, 10);
-      //   SoftSerial.print("GL CMD.\n");
-      // } 
-      // else 
       if (strstr(SMS, "WMA") != NULL)
       {
         mode = WATCH_MODE;
@@ -965,10 +957,13 @@ ISR(TIMER1_COMPA_vect) {
       sprintf(cmd, "AT+CMGR=%s", index_str);
       Serial.println(cmd);  // reads the first SMS
       x = 0;
+      SoftSerial.println("BEFORE.");
       while(Serial.available() == 0);
       do{
           if(Serial.available() > 0){    
               SMS[x] = Serial.read();
+              // SoftSerial.print("READ.");
+              SoftSerial.print(SMS[x]);
               x++;
               if (x > sizeof(SMS)-1)    
               {
@@ -978,111 +973,37 @@ ISR(TIMER1_COMPA_vect) {
       } while(Serial.available());
       // SoftSerial.println(SMS);
       
-      memset(cmd, '\0', 35); //commented for test
-      sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
-      answer = 0;
-      char answ_buff[40] = "";
-      Serial.println(cmd);
-      x = 0;
-      while(Serial.available() == 0);
-      do{
-          if(Serial.available() > 0){    
-              answ_buff[x] = Serial.read();
-              x++;
-              if (x > sizeof(answ_buff)-1)    
-              {
-                  break;
-              }
-              if (strstr(answ_buff, "OK") != NULL)
-              {
-                answer = 1;
-              }
-          }
-      } while(Serial.available());
-      if (answer == 1)
-      {
-        SoftSerial.print("RM MSG OK");
-      } 
-      else
-      {
-        SoftSerial.print("ERROR RM MSG");
-      }
-    }
-    else 
-    {
-
-    }
-
-    // if (strstr(serial_buff, "+CMTI") != NULL)
-    // {
-    //   SoftSerial.print("CHK MSG HERE.\n");
-
-      // get SMS idx here
-      // char buff[90]="";
-      // char d_buff[90]=""; // double for debug
-      // int8_t answer = 0;
-      // uint8_t x = 0;
-      // long previous;
-      // int i = 0;
-      /*DEBUG CODE
-
-      Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
-      previous = millis();
-      memset(buff, '\0', 90);
-      memset(d_buff, '\0', 90);
-      do {
-            buff[i] = Serial.read();
-            d_buff[i] = (char) buff[i];
-            SoftSerial.print(buff[i]);
-            i++;
-            if (strstr(buff, "OK") != NULL)
-            {
-              answer = 1;
-            }
-            if (i > sizeof(buff)-1)
-            {
-              break;
-            }
-      }
-      while((answer == 0) && ((millis() - previous) < 1000));
-      SoftSerial.print("END.\n");
-      SoftSerial.println(d_buff);
-
-      DEBUG CODE*/
-      // Serial.println("AT+CMGF=1");    // sets the SMS mode to text
-      // SoftSerial.print("SET FORMAT.\n");
-      // Serial.println("AT+CPMS=\"SM\",\"SM\",\"SM\""); // choose sim card memory
-      // SoftSerial.print("SET MEM.\n");
-      // memset(buff, '\0', 90);
-
-      // Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
-      // previous = millis();
+      // memset(cmd, '\0', 35); //commented for test
+      // sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
       // answer = 0;
-      // do {
-      //       buff[i] = Serial.read();
-      //       SoftSerial.print(buff[i]);
-      //       i++;
-      //       if (strstr(buff, "OK") != NULL)
-      //       {
-      //         answer = 1;
-      //       }
-      //       if (i > sizeof(buff)-1)
-      //       {
-      //         break;
-      //       }
-      // }
-      // while((answer == 0) && ((millis() - previous) < 1000));
-      
-      // SoftSerial.print("END READ.\n");
-      // if (strstr(buff, "+CMGL") != NULL) 
-      // {    
-      //   sscanf(buff, "%*[^:]: %d, %*[^,], %[^,], %*[^,], %*[^,], %*s\"\n%*s", &sms_idx, sms_phone_from);
-      //   SoftSerial.print("GOT DATA.\n");
-      // } 
-      // else 
+      // char answ_buff[40] = "";
+      // Serial.println(cmd);
+      // x = 0;
+      // while(Serial.available() == 0);
+      // do{
+      //     if(Serial.available() > 0){    
+      //         answ_buff[x] = Serial.read();
+      //         x++;
+      //         if (x > sizeof(answ_buff)-1)    
+      //         {
+      //             break;
+      //         }
+      //         if (strstr(answ_buff, "OK") != NULL)
+      //         {
+      //           answer = 1;
+      //         }
+      //     }
+      // } while(Serial.available());
+      // if (answer == 1)
       // {
-      //   SoftSerial.println("ERROR GETTING LAST SMS INDEX OR NO UNREAD MESSAGES.");
+      //   SoftSerial.print("RM MSG OK");
+      // } 
+      // else
+      // {
+      //   SoftSerial.print("ERROR RM MSG");
       // }
+    }
+
     if (strstr(serial_buff, "RING") != NULL)
     {
       Serial.print("AT+CLIP=1\n");
