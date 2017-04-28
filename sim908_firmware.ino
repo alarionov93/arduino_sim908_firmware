@@ -894,6 +894,27 @@ ISR(TIMER1_COMPA_vect) {
   noInterrupts();
 
   SoftSerial.print("IN ISR.\n");
+
+  int x = 0;
+  char serial_buff[100]="";
+  char sms_idx_str[3] = "";
+  memset(serial_buff, '\0', 100);
+  do {
+    serial_buff[x] = Serial.read();
+    x++;
+    if (x > sizeof(serial_buff)-1)
+    {
+      break;
+    }
+  } while (Serial.available() != 0);
+  SoftSerial.print(serial_buff);
+
+  if (strstr(serial_buff, "CMTI:") != NULL) {
+    ledFlash(100, OK_PIN, 15);
+    SoftSerial.println(serial_buff);
+    sscanf(serial_buff, "%*[^:]: %*[^,],%d", &sms_idx);
+  }
+
   ledFlash(30, OK_PIN, 4);
   if ((timer_interrupt_count % 2) == 1)
   {
@@ -917,25 +938,6 @@ ISR(TIMER1_COMPA_vect) {
   {
     digitalWrite(SIG_PIN, HIGH);
     // Serial.println("AT+CBC");
-    int x = 0;
-    char serial_buff[100]="";
-    char sms_idx_str[3] = "";
-    memset(serial_buff, '\0', 100);
-    do {
-      serial_buff[x] = Serial.read();
-      x++;
-      if (x > sizeof(serial_buff)-1)
-      {
-        break;
-      }
-    } while (Serial.available() != 0);
-    SoftSerial.print(serial_buff);
-
-    if (strstr(serial_buff, "CMTI:") != NULL) {
-      ledFlash(100, OK_PIN, 15);
-      SoftSerial.println(serial_buff);
-      sscanf(serial_buff, "%*[^:]: %*[^,],%d", &sms_idx);
-    }
 
     // TODO: comment above cycle of getting sms idx, and try to read 1st message in below code
       // reads incom msg here
@@ -943,7 +945,7 @@ ISR(TIMER1_COMPA_vect) {
     
     if (index > 0)
     {
-      memset(SMS, '\0', 45);
+      memset(SMS, '\0', 100);
       char cmd[35] = "";
       char index_str[4] = "";
       SoftSerial.print("IDX RECV:");
@@ -954,15 +956,15 @@ ISR(TIMER1_COMPA_vect) {
       SoftSerial.println(index_str);
       SoftSerial.print(" READ MSG.\n");
       memset(cmd, '\0', 35);
-      sprintf(cmd, "AT+CMGR=%s", index_str);
+      sprintf(cmd, "AT+CMGR=%d", index);
       Serial.println(cmd);  // reads the first SMS
       x = 0;
       SoftSerial.println("BEFORE.");
-      while(Serial.available() == 0);
+      // while(Serial.available() == 0);
       do{
           if(Serial.available() > 0){    
               SMS[x] = Serial.read();
-              // SoftSerial.print("READ.");
+              SoftSerial.print("READ.");
               SoftSerial.print(SMS[x]);
               x++;
               if (x > sizeof(SMS)-1)    
