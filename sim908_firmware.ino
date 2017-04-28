@@ -957,6 +957,8 @@ ISR(TIMER1_COMPA_vect) {
       SoftSerial.print("IDX RECV:");
       SoftSerial.print(index);
       itoa(index, index_str, 10);
+      SoftSerial.println(sizeof(index_str));
+      SoftSerial.println(index_str);
       SoftSerial.print(" READ MSG.\n");
       sprintf(cmd, "AT+CMGR=%s", index_str);
       Serial.println(cmd);  // reads the first SMS
@@ -972,7 +974,7 @@ ISR(TIMER1_COMPA_vect) {
               }
           }
       } while(Serial.available());
-      SoftSerial.println(SMS);
+      // SoftSerial.println(SMS);
       
       memset(cmd, '\0', 15); //commented for test
       sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
