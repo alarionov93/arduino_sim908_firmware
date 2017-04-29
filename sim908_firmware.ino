@@ -949,6 +949,7 @@ ISR(TIMER1_COMPA_vect) {
       memset(SMS, '\0', 100);
       char cmd[35] = "";
       char index_str[4] = "";
+      unsigned long previous;
       SoftSerial.print("IDX RECV:");
       SoftSerial.print(index);
       SoftSerial.println();
@@ -962,6 +963,7 @@ ISR(TIMER1_COMPA_vect) {
       x = 0;
       SoftSerial.println("BEFORE.");
       // while(Serial.available() == 0);
+      previous = millis();
       do{
           SMS[x] = Serial.read();
           SoftSerial.print(SMS[x]);
