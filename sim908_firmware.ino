@@ -891,7 +891,8 @@ void loop() {
 }
 
 ISR(TIMER1_COMPA_vect) {
-  noInterrupts();
+  // noInterrupts();
+  cli();
 
   SoftSerial.print("IN ISR.\n");
 
@@ -1034,6 +1035,7 @@ ISR(TIMER1_COMPA_vect) {
   if (timer_interrupt_count > 1000) {
     timer_interrupt_count = 0;
   }
-  interrupts();
+  // interrupts();
+  sei();
 }
 
