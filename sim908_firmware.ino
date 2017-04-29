@@ -918,6 +918,7 @@ ISR(TIMER1_COMPA_vect) {
   ledFlash(30, OK_PIN, 4);
   if ((timer_interrupt_count % 2) == 1)
   {
+      // TODO: do memset(SMS) here !!
       if (strstr(SMS, "WMA") != NULL)
       {
         mode = WATCH_MODE;
@@ -962,17 +963,15 @@ ISR(TIMER1_COMPA_vect) {
       SoftSerial.println("BEFORE.");
       // while(Serial.available() == 0);
       do{
-          if(Serial.available() > 0){    
-              SMS[x] = Serial.read();
-              SoftSerial.print("READ.");
-              SoftSerial.print(SMS[x]);
-              x++;
-              if (x > sizeof(SMS)-1)    
-              {
-                  break;
-              }
+          SMS[x] = Serial.read();
+          SoftSerial.print(SMS[x]);
+          SoftSerial.print(".");
+          x++;
+          if (x > sizeof(SMS)-1)    
+          {
+              break;
           }
-      } while(Serial.available());
+      } while((Serial.available()) && ((millis() - previous) < 2000));
       // SoftSerial.println(SMS);
       
       // memset(cmd, '\0', 35); //commented for test
