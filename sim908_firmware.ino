@@ -897,12 +897,12 @@ ISR(TIMER1_COMPA_vect) {
   SoftSerial.print("IN ISR.\n");
   ledFlash(30, OK_PIN, 4);
   int index = sms_idx;
+  char cmd[35] = "";
+  int x = 0;
+  char serial_buff[100]="";
 
   if (index == 0)
   {
-    int x = 0;
-    char serial_buff[100]="";
-    char sms_idx_str[3] = "";
     memset(serial_buff, '\0', 100);
     do {
       serial_buff[x] = Serial.read();
@@ -936,7 +936,7 @@ ISR(TIMER1_COMPA_vect) {
 
   if ((timer_interrupt_count % 2) == 0)
   {
-    digitalWrite(SIG_PIN, HIGH);
+    // digitalWrite(SIG_PIN, HIGH);
     // Serial.println("AT+CBC");
 
     // TODO: comment above cycle of getting sms idx, and try to read 1st message in below code
@@ -945,27 +945,17 @@ ISR(TIMER1_COMPA_vect) {
     if (index > 0)
     {
       memset(SMS, '\0', 100);
-      char cmd[35] = "";
-      char index_str[4] = "";
-      unsigned long previous;
       SoftSerial.print("IDX RECV:");
       SoftSerial.print(index);
-      SoftSerial.println();
-      itoa(index, index_str, 10);
-      SoftSerial.println(sizeof(index_str));
-      SoftSerial.println(index_str);
-      SoftSerial.print(" READ MSG.\n");
       memset(cmd, '\0', 35);
       sprintf(cmd, "AT+CMGR=%d", index);
       Serial.println(cmd);  // reads the first SMS
-      x = 0;
       SoftSerial.println("BEFORE.");
+      x = 0;
       // while(Serial.available() == 0);
-      previous = millis();
       do{
           SMS[x] = Serial.read();
-          // SoftSerial.print(SMS[x]);
-          // SoftSerial.print(".");
+          SoftSerial.print(SMS[x]);
           x++;
           if (x > sizeof(SMS)-1)    
           {
@@ -1004,29 +994,26 @@ ISR(TIMER1_COMPA_vect) {
       //   SoftSerial.print("ERROR RM MSG");
       // }
     }
-
-    if (strstr(serial_buff, "RING") != NULL)
-    {
-      Serial.print("AT+CLIP=1\n");
-      _delay_ms(100);
-      SoftSerial.print("INC CALL");
-      /* do something here, but need to check number */
-      if (strstr(serial_buff, "+CLIP: \"+79655766572") != NULL)
-      {
-        /* number checked, do the staff */
-        SoftSerial.print(" FROM OWNER.\n");
-        SoftSerial.print("SENT LOCATION IMMEDIATLY AFTER RING.\n");
-      }
-    }
     // TODO: think, if it is more good to remove all messages and read always 1st ?
-    sendBatChgLvl();
-  } else {
-    digitalWrite(SIG_PIN, LOW);
+    // sendBatChgLvl();
   }
   if (strstr(serial_buff, "CMTI:") != NULL) {
     ledFlash(100, OK_PIN, 15);
     SoftSerial.println(serial_buff);
     sscanf(serial_buff, "%*[^:]: %*[^,],%d", &sms_idx);
+  }
+  if (strstr(serial_buff, "RING") != NULL)
+  {
+    Serial.print("AT+CLIP=1\n");
+    _delay_ms(100);
+    SoftSerial.print("INC CALL");
+    /* do something here, but need to check number */
+    if (strstr(serial_buff, "+CLIP: \"+79655766572") != NULL)
+    {
+      /* number checked, do the staff */
+      SoftSerial.print(" FROM OWNER.\n");
+      SoftSerial.print("SENT LOCATION IMMEDIATLY AFTER RING.\n");
+    }
   }
   // if ((timer_interrupt_count % 4) == 0)
   // {
