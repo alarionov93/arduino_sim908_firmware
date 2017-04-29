@@ -895,25 +895,29 @@ ISR(TIMER1_COMPA_vect) {
   cli();
 
   SoftSerial.print("IN ISR.\n");
-
-  int x = 0;
-  char serial_buff[100]="";
-  char sms_idx_str[3] = "";
-  memset(serial_buff, '\0', 100);
-  do {
-    serial_buff[x] = Serial.read();
-    x++;
-    if (x > sizeof(serial_buff)-1)
-    {
-      break;
-    }
-  } while (Serial.available() != 0);
-  SoftSerial.print(serial_buff);
-
   ledFlash(30, OK_PIN, 4);
+  int index = sms_idx;
+
+  if (index == 0)
+  {
+    int x = 0;
+    char serial_buff[100]="";
+    char sms_idx_str[3] = "";
+    memset(serial_buff, '\0', 100);
+    do {
+      serial_buff[x] = Serial.read();
+      x++;
+      if (x > sizeof(serial_buff)-1)
+      {
+        break;
+      }
+    } while (Serial.available() != 0);
+    SoftSerial.print(serial_buff);
+  }
+
   if ((timer_interrupt_count % 2) == 1)
   {
-      // TODO: do memset(SMS) here !!
+      // TODO: do memset(SMS) here and sms_idx = 0 (reset all sms params before getting new one)
       if (strstr(SMS, "WMA") != NULL)
       {
         mode = WATCH_MODE;
@@ -936,8 +940,7 @@ ISR(TIMER1_COMPA_vect) {
     // Serial.println("AT+CBC");
 
     // TODO: comment above cycle of getting sms idx, and try to read 1st message in below code
-      // reads incom msg here
-    int index = sms_idx;
+    // reads incom msg here
     
     if (index > 0)
     {
@@ -961,14 +964,14 @@ ISR(TIMER1_COMPA_vect) {
       previous = millis();
       do{
           SMS[x] = Serial.read();
-          SoftSerial.print(SMS[x]);
-          SoftSerial.print(".");
+          // SoftSerial.print(SMS[x]);
+          // SoftSerial.print(".");
           x++;
           if (x > sizeof(SMS)-1)    
           {
               break;
           }
-      } while(((millis() - previous) < 2000));
+      } while(Serial.available() != 0);
       // SoftSerial.println(SMS);
       
       // memset(cmd, '\0', 35); //commented for test
