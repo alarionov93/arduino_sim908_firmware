@@ -910,12 +910,6 @@ ISR(TIMER1_COMPA_vect) {
   } while (Serial.available() != 0);
   SoftSerial.print(serial_buff);
 
-  if (strstr(serial_buff, "CMTI:") != NULL) {
-    ledFlash(100, OK_PIN, 15);
-    SoftSerial.println(serial_buff);
-    sscanf(serial_buff, "%*[^:]: %*[^,],%d", &sms_idx);
-  }
-
   ledFlash(30, OK_PIN, 4);
   if ((timer_interrupt_count % 2) == 1)
   {
@@ -974,7 +968,7 @@ ISR(TIMER1_COMPA_vect) {
           {
               break;
           }
-      } while((Serial.available()) && ((millis() - previous) < 2000));
+      } while(((millis() - previous) < 2000));
       // SoftSerial.println(SMS);
       
       // memset(cmd, '\0', 35); //commented for test
@@ -1025,6 +1019,11 @@ ISR(TIMER1_COMPA_vect) {
     sendBatChgLvl();
   } else {
     digitalWrite(SIG_PIN, LOW);
+  }
+  if (strstr(serial_buff, "CMTI:") != NULL) {
+    ledFlash(100, OK_PIN, 15);
+    SoftSerial.println(serial_buff);
+    sscanf(serial_buff, "%*[^:]: %*[^,],%d", &sms_idx);
   }
   // if ((timer_interrupt_count % 4) == 0)
   // {
