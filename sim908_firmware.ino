@@ -64,7 +64,7 @@ char voltage[5]="";
 volatile char serial_buff[100]="";
 volatile char buff[90]="";
 
-volatile char SMS[100] = "";
+volatile char SMS[150] = "";
 volatile int sms_idx = 0;
 volatile char sms_phone_from[12] = "";
 
@@ -711,10 +711,10 @@ void getLastSMSIndex() {
 
 void readSMS(int index) {
   memset(SMS, '\0', 45);
-  volatile int8_t answer;
-  volatile uint8_t x = 0;
-  volatile char cmd[15] = "";
-  volatile char index_str[4] = "";
+  int8_t answer;
+  uint8_t x = 0;
+  char cmd[15] = "";
+  char index_str[4] = "";
   SoftSerial.print("IDX RECV:");
   SoftSerial.print(index);
   itoa(index, index_str, 10);
@@ -897,23 +897,20 @@ ISR(TIMER1_COMPA_vect) {
   SoftSerial.print("IN ISR.\n");
   ledFlash(30, OK_PIN, 4);
   int index = sms_idx;
-  char cmd[35] = "";
+  char cmd[25] = "";
   int x = 0;
-  char serial_buff[100]="";
+  char serial_buff[150]="";
 
-  if (index == 0)
-  {
-    memset(serial_buff, '\0', 100);
-    do {
-      serial_buff[x] = Serial.read();
-      x++;
-      if (x > sizeof(serial_buff)-1)
-      {
-        break;
-      }
-    } while (Serial.available() != 0);
-    SoftSerial.print(serial_buff);
-  }
+  memset(serial_buff, '\0', 150);
+  do {
+    serial_buff[x] = Serial.read();
+    x++;
+    if (x > sizeof(serial_buff)-1)
+    {
+      break;
+    }
+  } while (Serial.available() != 0);
+  SoftSerial.print(serial_buff);
 
   if ((timer_interrupt_count % 2) == 1)
   {
@@ -944,10 +941,10 @@ ISR(TIMER1_COMPA_vect) {
     
     if (index > 0)
     {
-      memset(SMS, '\0', 100);
+      memset(SMS, '\0', 150);
       SoftSerial.print("IDX RECV:");
       SoftSerial.print(index);
-      memset(cmd, '\0', 35);
+      memset(cmd, '\0', 25);
       sprintf(cmd, "AT+CMGR=%d", index);
       Serial.println(cmd);  // reads the first SMS
       SoftSerial.println("BEFORE.");
