@@ -870,7 +870,7 @@ void loop() {
       delay(8000);
     }
   }
-  else
+  else // TODO: can not check sms (get +CMTI) with sleep module ! FIXME!
   {
     SoftSerial.print("WATCH MODE ACTIVE.\n");
 
