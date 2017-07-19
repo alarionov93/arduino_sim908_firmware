@@ -855,6 +855,11 @@ void setup() {
 
 void loop() {
 
+  digitalWrite(13, HIGH);
+  delay(200);
+  digitalWrite(13, LOW);
+  delay(200);
+
   // // getCoordinates();
   // // sendCoordinates();
   // SoftSerial.print("SENT LOC\n");
