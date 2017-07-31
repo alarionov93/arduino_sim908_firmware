@@ -816,15 +816,15 @@ void setup() {
   // initialize timer1
   // interrupts was not working BECAUSE OF THIS LINE?
   noInterrupts();           // disable all interrupts
-  // TCCR1A = 0;
-  // TCCR1B = 0;
-  // TCNT1  = 0;
-  //
-  // OCR1A = 31250;            // compare match register 16MHz/256/2Hz
-  // TCCR1B |= (1 << WGM12);   // CTC mode
-  // TCCR1B |= (1 << CS12);
-  // TCCR1B |= (1 << CS10);    // 1024 prescaler
-  // TIMSK1 |= (1 << OCIE1A);  // enable timer compare interrupt
+  TCCR1A = 0;
+  TCCR1B = 0;
+  TCNT1  = 0;
+  
+  OCR1A = 31250;            // compare match register 16MHz/256/2Hz
+  TCCR1B |= (1 << WGM12);   // CTC mode
+  TCCR1B |= (1 << CS12);
+  TCCR1B |= (1 << CS10);    // 1024 prescaler
+  TIMSK1 |= (1 << OCIE1A);  // enable timer compare interrupt
 
 
   //configure serials
@@ -836,20 +836,20 @@ void setup() {
   delay(2000);
   check_stat();
 
-  // delay(2000);
-  // SoftSerial.println("CGSM\n");
-  // gsm_up();
-  // ledFlash(50, ERROR_PIN, 3);
-  //
-  // delay(100);
-  // SoftSerial.println("CGPRS\n");
-  // gprs_up();
-  // ledFlash(50, ERROR_PIN, 3);
-  //
-  // delay(100);
-  // SoftSerial.println("CGPS\n");
-  // gps_up();
-  // ledFlash(50, ERROR_PIN, 3);
+  delay(2000);
+  SoftSerial.println("CGSM\n");
+  gsm_up();
+  ledFlash(50, ERROR_PIN, 3);
+  
+  delay(100);
+  SoftSerial.println("CGPRS\n");
+  gprs_up();
+  ledFlash(50, ERROR_PIN, 3);
+  
+  delay(100);
+  SoftSerial.println("CGPS\n");
+  gps_up();
+  ledFlash(50, ERROR_PIN, 3);
   interrupts();             // enable all interrupts
 }
 
@@ -860,210 +860,210 @@ void loop() {
   digitalWrite(13, LOW);
   delay(200);
 
-  // // getCoordinates();
-  // // sendCoordinates();
-  // SoftSerial.print("SENT LOC\n");
-  //
-  // if (mode == TRACK_MODE)
-  // {
-  //   // delay(DEFAULT_TRACK_MODE_DELAY);
-  //   // TODO: test working of powerDown after solving SMS, GPRS and read messages problems !!!
-  //   SoftSerial.print("TM\n");
-  //   for (int i = 0; i < 5; i++) //sleep for 40 seconds
-  //   {
-  //     // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
-  //     if (cmd_recv_chg_mode == 1) {
-  //       SoftSerial.print("RET TM\n");
-  //       break;
-  //     }
-  //     delay(8000);
-  //   }
-  // }
-  // else // TODO: can not check sms (get +CMTI) with sleep module ! FIXME!!!!
-  // {
-  //   SoftSerial.print("WM\n");
-  //
-  //   // sleep_module();
-  //   // delay(DEFAULT_WATCH_MODE_DELAY);
-  //   for (int i = 0; i < 5; i++) //sleep for 1500 seconds (25 minutes)
-  //   {
-  //     sleep_module();
-  //     // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
-  //     if (cmd_recv_chg_mode == 1) {
-  //       SoftSerial.print("RET WM.\n");
-  //       break;
-  //     }
-  //     delay(300000);
-  //     wake_up();
-  //     delay(10000);
-  //   }
-  //   // wake_up();
-  // }
-  // if (cmd_recv_chg_mode == 1 && sms_idx > 0)
-  // {
-  //       readSMS(sms_idx);
-  //       if (strstr(SMS, "WMA") != NULL)
-  //       {
-  //         mode = WATCH_MODE;
-  //         SoftSerial.print("SWITCH TO WM.\n");
-  //       }
-  //       else if (strstr(SMS, "TMA") != NULL)
-  //       {
-  //         mode = TRACK_MODE;
-  //         SoftSerial.print("SWITCH TO TM.\n");
-  //       }
-  //       else
-  //       {
-  //         SoftSerial.print("NO CMD.\n");
-  //       }
-  //       cmd_recv_chg_mode = 0;
-  // }
-  // if (cmd_recv_get_coord == 1)
-  // {
-  //   // getCoordinates();
-  //   // sendCoordinates();
-  //   SoftSerial.print("SENT ILOC.\n");
-  //   cmd_recv_get_coord = 0;
-  // }
-  //
+  // getCoordinates();
+  // sendCoordinates();
+  SoftSerial.print("SENT LOC\n");
+  
+  if (mode == TRACK_MODE)
+  {
+    // delay(DEFAULT_TRACK_MODE_DELAY);
+    // TODO: test working of powerDown after solving SMS, GPRS and read messages problems !!!
+    SoftSerial.print("TM\n");
+    for (int i = 0; i < 5; i++) //sleep for 40 seconds
+    {
+      // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+      if (cmd_recv_chg_mode == 1) {
+        SoftSerial.print("RET TM\n");
+        break;
+      }
+      delay(8000);
+    }
+  }
+  else // TODO: can not check sms (get +CMTI) with sleep module ! FIXME!!!!
+  {
+    SoftSerial.print("WM\n");
+  
+    // sleep_module();
+    // delay(DEFAULT_WATCH_MODE_DELAY);
+    for (int i = 0; i < 5; i++) //sleep for 1500 seconds (25 minutes)
+    {
+      sleep_module();
+      // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+      if (cmd_recv_chg_mode == 1) {
+        SoftSerial.print("RET WM.\n");
+        break;
+      }
+      delay(300000);
+      wake_up();
+      delay(10000);
+    }
+    // wake_up();
+  }
+  if (cmd_recv_chg_mode == 1 && sms_idx > 0)
+  {
+        readSMS(sms_idx);
+        if (strstr(SMS, "WMA") != NULL)
+        {
+          mode = WATCH_MODE;
+          SoftSerial.print("SWITCH TO WM.\n");
+        }
+        else if (strstr(SMS, "TMA") != NULL)
+        {
+          mode = TRACK_MODE;
+          SoftSerial.print("SWITCH TO TM.\n");
+        }
+        else
+        {
+          SoftSerial.print("NO CMD.\n");
+        }
+        cmd_recv_chg_mode = 0;
+  }
+  if (cmd_recv_get_coord == 1)
+  {
+    // getCoordinates();
+    // sendCoordinates();
+    SoftSerial.print("SENT ILOC.\n");
+    cmd_recv_get_coord = 0;
+  }
+  
 
   //TODO: coordinates difference should depend on calculation this value!!
 
   //TODO: use check_stat and gsm_up here, to report if smthng is down during normal work of module
 }
 
-// ISR(TIMER1_COMPA_vect) {
-//   // noInterrupts();
-//   cli();
-//
-//   SoftSerial.print("ISR\n");
-//   ledFlash(30, OK_PIN, 4);
-//   // int index = sms_idx;
-//   // char cmd[25] = "";
-//   int x = 0;
-//   char serial_buff[120]="";
-//
-//   memset(serial_buff, '\0', 120);
-//   do {
-//     serial_buff[x] = Serial.read();
-//     x++;
-//     if (x > sizeof(serial_buff)-1)
-//     {
-//       break;
-//     }
-//   } while (Serial.available() != 0);
-//   // SoftSerial.print(serial_buff);
-//
-//   // if ((timer_interrupt_count % 2) == 1)
-//   // {
-//   //     // TODO: do memset(SMS) here and sms_idx = 0 (reset all sms params before getting new one)
-//   //     if (strstr(SMS, "WMA") != NULL)
-//   //     {
-//   //       mode = WATCH_MODE;
-//   //       SoftSerial.print("SWITCHING TO WM.\n");
-//   //     }
-//   //     else if (strstr(SMS, "TMA") != NULL)
-//   //     {
-//   //       mode = TRACK_MODE;
-//   //       SoftSerial.print("SWITCHING TO TM.\n");
-//   //     }
-//   //     else
-//   //     {
-//   //       SoftSerial.print("NO CMD.\n");
-//   //     }
-//   // }
-//
-//   if ((timer_interrupt_count % 2) == 0)
-//   {
-//     // digitalWrite(SIG_PIN, HIGH);
-//     // Serial.println("AT+CBC");
-//
-//     // TODO: comment above cycle of getting sms idx, and try to read 1st message in below code
-//     // reads incom msg here
-//
-//     // if (index > 0)
-//     // {
-//     //   memset(SMS, '\0', 150);
-//     //   SoftSerial.print("IDX RECV:");
-//     //   SoftSerial.print(index);
-//     //   memset(cmd, '\0', 25);
-//     //   sprintf(cmd, "AT+CMGR=%d", index);
-//     //   Serial.println(cmd);  // reads the first SMS
-//     //   SoftSerial.println("BEFORE.");
-//     //   x = 0;
-//     //   // while(Serial.available() == 0);
-//     //   do{
-//     //       SMS[x] = Serial.read();
-//     //       SoftSerial.print(SMS[x]);
-//     //       x++;
-//     //       if (x > sizeof(SMS)-1)
-//     //       {
-//     //           break;
-//     //       }
-//     //   } while(Serial.available() != 0);
-//       // SoftSerial.println(SMS);
-//
-//       // memset(cmd, '\0', 35); //commented for test
-//       // sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
-//       // answer = 0;
-//       // char answ_buff[40] = "";
-//       // Serial.println(cmd);
-//       // x = 0;
-//       // while(Serial.available() == 0);
-//       // do{
-//       //     if(Serial.available() > 0){
-//       //         answ_buff[x] = Serial.read();
-//       //         x++;
-//       //         if (x > sizeof(answ_buff)-1)
-//       //         {
-//       //             break;
-//       //         }
-//       //         if (strstr(answ_buff, "OK") != NULL)
-//       //         {
-//       //           answer = 1;
-//       //         }
-//       //     }
-//       // } while(Serial.available());
-//       // if (answer == 1)
-//       // {
-//       //   SoftSerial.print("RM MSG OK");
-//       // }
-//       // else
-//       // {
-//       //   SoftSerial.print("ERROR RM MSG");
-//       // }
-//     // }
-//     // TODO: think, if it is more good to remove all messages and read always 1st ?
-//     // sendBatChgLvl();
-//   }
-//   if (strstr(serial_buff, "CMTI:") != NULL) {
-//     ledFlash(100, OK_PIN, 15);
-//     // SoftSerial.println(serial_buff);
-//     sscanf(serial_buff, "%*[^:]: %*[^,],%d", &sms_idx);
-//     // TODO: add all checking here (phone number and others), before saying that cmd is recieved !!
-//     cmd_recv_chg_mode = 1;
-//   }
-//   if (strstr(serial_buff, "RING") != NULL)
-//   {
-//     Serial.print("AT+CLIP=1\n");
-//     _delay_ms(100);
-//     /* do something here, but need to check number */
-//     if (strstr(serial_buff, "+CLIP: \"+79655766572") != NULL)
-//     {
-//       /* number checked, do the staff */
-//       cmd_recv_get_coord = 1;
-//       SoftSerial.print("INC CALL\n");
-//     }
-//   }
-//   // if ((timer_interrupt_count % 4) == 0)
-//   // {
-//   //   /* check sms here */
-//   // }
-//
-//   timer_interrupt_count++;
-//   if (timer_interrupt_count > 1000) {
-//     timer_interrupt_count = 0;
-//   }
-//   // interrupts();
-//   sei();
-// }
+ISR(TIMER1_COMPA_vect) {
+  // noInterrupts();
+  cli();
+
+  SoftSerial.print("ISR\n");
+  ledFlash(30, OK_PIN, 4);
+  // int index = sms_idx;
+  // char cmd[25] = "";
+  int x = 0;
+  char serial_buff[120]="";
+
+  memset(serial_buff, '\0', 120);
+  do {
+    serial_buff[x] = Serial.read();
+    x++;
+    if (x > sizeof(serial_buff)-1)
+    {
+      break;
+    }
+  } while (Serial.available() != 0);
+  // SoftSerial.print(serial_buff);
+
+  // if ((timer_interrupt_count % 2) == 1)
+  // {
+  //     // TODO: do memset(SMS) here and sms_idx = 0 (reset all sms params before getting new one)
+  //     if (strstr(SMS, "WMA") != NULL)
+  //     {
+  //       mode = WATCH_MODE;
+  //       SoftSerial.print("SWITCHING TO WM.\n");
+  //     }
+  //     else if (strstr(SMS, "TMA") != NULL)
+  //     {
+  //       mode = TRACK_MODE;
+  //       SoftSerial.print("SWITCHING TO TM.\n");
+  //     }
+  //     else
+  //     {
+  //       SoftSerial.print("NO CMD.\n");
+  //     }
+  // }
+
+  if ((timer_interrupt_count % 2) == 0)
+  {
+    // digitalWrite(SIG_PIN, HIGH);
+    // Serial.println("AT+CBC");
+
+    // TODO: comment above cycle of getting sms idx, and try to read 1st message in below code
+    // reads incom msg here
+
+    // if (index > 0)
+    // {
+    //   memset(SMS, '\0', 150);
+    //   SoftSerial.print("IDX RECV:");
+    //   SoftSerial.print(index);
+    //   memset(cmd, '\0', 25);
+    //   sprintf(cmd, "AT+CMGR=%d", index);
+    //   Serial.println(cmd);  // reads the first SMS
+    //   SoftSerial.println("BEFORE.");
+    //   x = 0;
+    //   // while(Serial.available() == 0);
+    //   do{
+    //       SMS[x] = Serial.read();
+    //       SoftSerial.print(SMS[x]);
+    //       x++;
+    //       if (x > sizeof(SMS)-1)
+    //       {
+    //           break;
+    //       }
+    //   } while(Serial.available() != 0);
+      // SoftSerial.println(SMS);
+
+      // memset(cmd, '\0', 35); //commented for test
+      // sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
+      // answer = 0;
+      // char answ_buff[40] = "";
+      // Serial.println(cmd);
+      // x = 0;
+      // while(Serial.available() == 0);
+      // do{
+      //     if(Serial.available() > 0){
+      //         answ_buff[x] = Serial.read();
+      //         x++;
+      //         if (x > sizeof(answ_buff)-1)
+      //         {
+      //             break;
+      //         }
+      //         if (strstr(answ_buff, "OK") != NULL)
+      //         {
+      //           answer = 1;
+      //         }
+      //     }
+      // } while(Serial.available());
+      // if (answer == 1)
+      // {
+      //   SoftSerial.print("RM MSG OK");
+      // }
+      // else
+      // {
+      //   SoftSerial.print("ERROR RM MSG");
+      // }
+    // }
+    // TODO: think, if it is more good to remove all messages and read always 1st ?
+    // sendBatChgLvl();
+  }
+  if (strstr(serial_buff, "CMTI:") != NULL) {
+    ledFlash(100, OK_PIN, 15);
+    // SoftSerial.println(serial_buff);
+    sscanf(serial_buff, "%*[^:]: %*[^,],%d", &sms_idx);
+    // TODO: add all checking here (phone number and others), before saying that cmd is recieved !!
+    cmd_recv_chg_mode = 1;
+  }
+  if (strstr(serial_buff, "RING") != NULL)
+  {
+    Serial.print("AT+CLIP=1\n");
+    _delay_ms(100);
+    /* do something here, but need to check number */
+    if (strstr(serial_buff, "+CLIP: \"+79655766572") != NULL)
+    {
+      /* number checked, do the staff */
+      cmd_recv_get_coord = 1;
+      SoftSerial.print("INC CALL\n");
+    }
+  }
+  // if ((timer_interrupt_count % 4) == 0)
+  // {
+  //   /* check sms here */
+  // }
+
+  timer_interrupt_count++;
+  if (timer_interrupt_count > 1000) {
+    timer_interrupt_count = 0;
+  }
+  // interrupts();
+  sei();
+}
