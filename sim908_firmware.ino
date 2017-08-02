@@ -35,7 +35,6 @@ TODO list:
 // }
 // #endif
 
-int sys_ctl_state = 0;
 volatile int cmd_recv_chg_mode = 0;
 volatile int cmd_recv_get_coord = 0;
 
@@ -44,7 +43,7 @@ bool DEBUG = true;
 uint8_t answer=0;
 char aux_str[60];
 //uint8_t MODE_DELAY = 80000;
-volatile int mode = TRACK_MODE;
+int mode = TRACK_MODE;
 volatile int timer_interrupt_count = 0;
 int sleep_counter = 0;
 
@@ -53,32 +52,32 @@ char apn[21]="internet.beeline.ru";
 char user_name[10]="beeline";
 char password[10]="beeline";
 char url[30]="http://a-larionov.ru:5000/gps";
-char error_url[30]="http://a-larionov.ru:5000/err";
+// char error_url[30]="http://a-larionov.ru:5000/err";
 char longitude[30]="";
 char latitude[30]="";
 char altitude[10]="";
 char speed[11]="";
-char frame[200]="";
-char date[17]="";
-char satellites[4]="";
-char course[11]="";
-char chgMode[2]="";
-char percent[4]="";
-char voltage[5]="";
-volatile char serial_buff[100]="";
-volatile char buff[90]="";
+char frame[150]="";
+// char date[17]="";
+// char satellites[4]="";
+// char course[11]="";
+// char chgMode[2]="";
+// char percent[4]="";
+// char voltage[5]="";
+// volatile char serial_buff[100]="";
+// volatile char buff[90]="";
 
-volatile char SMS[150] = "";
+volatile char SMS[100] = "";
 volatile int sms_idx = 0;
-volatile char sms_phone_from[12] = "";
+// volatile char sms_phone_from[12] = "";
 
 SoftwareSerial SoftSerial(SS_RX, SS_TX); // RX, TX
 
-uint8_t n_debug = 0;
-inline void debug(char* str) {
-  SoftSerial.print(n_debug++);
-  SoftSerial.println(str);
-}
+// uint8_t n_debug = 0;
+// inline void debug(char* str) {
+//   SoftSerial.print(n_debug++);
+//   SoftSerial.println(str);
+// }
 
 int8_t sendATcommand(const char* ATcommand, const char* expected_answer, unsigned int timeout){
 
@@ -124,57 +123,57 @@ int8_t sendATcommand(const char* ATcommand, const char* expected_answer, unsigne
     return answer;
 }
 
-void report_err(int try_num, char msg[40]) { // USE ONLY AFTER GETTING GPRS BEARER !!
- bool success = false;
- answer = sendATcommand("AT+HTTPINIT", "OK", 5000);
-     if (answer == 1)
-     {
-     // Sets CID parameter
-       answer = sendATcommand("AT+HTTPPARA=\"CID\",1", "OK", 2000);
-       if (answer == 1)
-       {
-         // Sets url
-         sprintf(aux_str, "AT+HTTPPARA=\"URL\",\"%s", error_url);
-         Serial.print(aux_str);
-         // answer = sendATcommand(aux_str, "OK", 2000);
-         sprintf(frame, "?error=%s&device=%s", msg, DEVICE_ID);
-         Serial.print(frame);
-         answer = sendATcommand("\"", "OK", 5000);
-         if (answer == 1)
-         {
-           answer = sendATcommand("AT+HTTPPARA=\"CONTENT\",\"application/x-www-form-urlencoded\"", "OK", 2000);
-           if(answer == 1) {
-             // Starts GET action
-             answer = sendATcommand("AT+HTTPACTION=0", "+HTTPACTION:0,200", 10000);
-             if (answer == 1) {
-               success = true;
-             } else {
-               SoftSerial.println("ERR GET URL\n"); // TODO: SHOW ERR
-               //here if url is not available, set old url a-larionov.ru:2222/data_parser.php
-               ledFlash(1000, ERROR_PIN, 10); //this is set to understand that something went wrong on data sending - the last step!
-             }
-           } else { //TODO: ALL HERE SHOW ERR
-             SoftSerial.println("ERR CON TYPE\n");
-             ledFlash(1000, ERROR_PIN, 10);
-           }
-         } else {
-           SoftSerial.println("ERR SET URL\n");
-           ledFlash(1000, ERROR_PIN, 10);
-         }
-       } else {
-         SoftSerial.println("ERR SET CID\n");
-         ledFlash(1000, ERROR_PIN, 10);
-       }
-     } else {
-       SoftSerial.println("ERR INIT\n");
-       ledFlash(1000, ERROR_PIN, 10);
-     }
-   sendATcommand("AT+HTTPTERM", "OK", 5000);
-   if (success == true)
-   {
-     ledFlash(200, ERROR_PIN, 7); // TODO: SHOW OK
-   }
-}
+// void report_err(int try_num, char msg[40]) { // USE ONLY AFTER GETTING GPRS BEARER !!
+//  bool success = false;
+//  answer = sendATcommand("AT+HTTPINIT", "OK", 5000);
+//      if (answer == 1)
+//      {
+//      // Sets CID parameter
+//        answer = sendATcommand("AT+HTTPPARA=\"CID\",1", "OK", 2000);
+//        if (answer == 1)
+//        {
+//          // Sets url
+//          sprintf(aux_str, "AT+HTTPPARA=\"URL\",\"%s", error_url);
+//          Serial.print(aux_str);
+//          // answer = sendATcommand(aux_str, "OK", 2000);
+//          sprintf(frame, "?error=%s&device=%s", msg, DEVICE_ID);
+//          Serial.print(frame);
+//          answer = sendATcommand("\"", "OK", 5000);
+//          if (answer == 1)
+//          {
+//            answer = sendATcommand("AT+HTTPPARA=\"CONTENT\",\"application/x-www-form-urlencoded\"", "OK", 2000);
+//            if(answer == 1) {
+//              // Starts GET action
+//              answer = sendATcommand("AT+HTTPACTION=0", "+HTTPACTION:0,200", 10000);
+//              if (answer == 1) {
+//                success = true;
+//              } else {
+//                SoftSerial.println("ERR GET URL\n"); // TODO: SHOW ERR
+//                //here if url is not available, set old url a-larionov.ru:2222/data_parser.php
+//                ledFlash(1000, ERROR_PIN, 10); //this is set to understand that something went wrong on data sending - the last step!
+//              }
+//            } else { //TODO: ALL HERE SHOW ERR
+//             //  SoftSerial.println("ERR CON TYPE\n");
+//              ledFlash(1000, ERROR_PIN, 10);
+//            }
+//          } else {
+//           //  SoftSerial.println("ERR SET URL\n");
+//            ledFlash(1000, ERROR_PIN, 10);
+//          }
+//        } else {
+//         //  SoftSerial.println("ERR SET CID\n");
+//          ledFlash(1000, ERROR_PIN, 10);
+//        }
+//      } else {
+//       //  SoftSerial.println("ERR INIT\n");
+//        ledFlash(1000, ERROR_PIN, 10);
+//      }
+//    sendATcommand("AT+HTTPTERM", "OK", 5000);
+//    if (success == true)
+//    {
+//      ledFlash(200, ERROR_PIN, 7); // TODO: SHOW OK
+//    }
+// }
 
 void ledFlash(int del, int pin, int count) { // 3
   for (int i = 0; i < count; i++) {
@@ -222,7 +221,7 @@ void wake_up() {
   // gprs_up();
   delay(100);
   // gps_up();
-  SoftSerial.print("WAKE UP DONE.\n");
+  SoftSerial.print("W UP DONE.\n");
   ledFlash(200, OK_PIN, 3);
 }
 
@@ -251,7 +250,7 @@ void check_stat() {
     }
   }
   if (answer == 1) {
-    ledFlash(500, ERROR_PIN, 5);
+    ledFlash(500, OK_PIN, 3);
   }
 }
 
@@ -287,7 +286,7 @@ void gps_up() {
       x++;
       if (x >= 4)
       {
-       report_err(x, "Can_not_fix_location"); // IMPORTANT !! NOT use characters that may cause URL breaks!!
+      //  report_err(x, "Can_not_fix_location"); // IMPORTANT !! NOT use characters that may cause URL breaks!!
       }
     }
     if (stat) {
@@ -313,17 +312,17 @@ uint8_t sms_conf() {
     answer = sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 2000);
     if (answer)
     {
-      SoftSerial.print("MESSAGES CONFIGURED.\n");
+      SoftSerial.print("MSG CONF\n");
       res = 1;
     }
     else
     {
-      SoftSerial.print("ERR SET SMS MEM.\n");
+      SoftSerial.print("ERR MEM\n");
     }
   }
   else
   {
-    SoftSerial.print("ERR SET SMS FORMAT.\n");
+    SoftSerial.print("ERR FORM\n");
   }
   return res;
 }
@@ -348,7 +347,7 @@ void gsm_up() {
     // }
   }
   if (pin && reg) {
-    SoftSerial.write("PIN OK, GSM OK.\n");
+    SoftSerial.write("GSM OK\n");
     digitalWrite(OK_PIN, HIGH); // TODO: SHOW OK
     delay(2000);
     digitalWrite(OK_PIN, LOW);
@@ -357,7 +356,7 @@ void gsm_up() {
     }
   }
   if (pin && reg == 0) {
-    SoftSerial.write("PIN OK, GSM ERR.\n");
+    SoftSerial.write("GSM ERR\n");
     if (sms_conf() != 1) {
       ledFlash(100, ERROR_PIN, 3);
       delay(500);
@@ -369,7 +368,7 @@ void gsm_up() {
 void gprs_up() {
   uint8_t gprs = 0;
   uint8_t stat_gprs = 0;
-  char tmp[10] = "";
+  // char tmp[10] = "";
   int tr = 1; // trying counter
     // sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000);
     // stat_gprs = sendATcommand("AT+SAPBR=4,1", "internet.beeline.ru", 2000);
@@ -378,7 +377,7 @@ void gprs_up() {
     //   ledFlash(500, ERROR_PIN, 3);
     // }
     ledFlash(200, OK_PIN, 5);
-    SoftSerial.write("SET APN.\n");
+    // SoftSerial.write("SET APN.\n");
     sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000); //for sim with 963016...0!
 
     // sendATcommand("AT+SAPBR=0,1", "OK", 2000); //always turn gprs off - to avoid if AT+SAPBR=1,1 returning ERROR
@@ -393,9 +392,9 @@ void gprs_up() {
     gprs = sendATcommand("AT+SAPBR=1,1", "OK", 45000); //30 seconds is the minimal value!
     while (gprs == 0)
     {
-      tr++;
+      // tr++;
       ledFlash(200, OK_PIN, 5); //TODO: SHOW
-      SoftSerial.println(sprintf(tmp, "SET APN:%d.\n", tr));
+      // SoftSerial.println(sprintf(tmp, "SET APN:%d.\n", tr));
       sendATcommand("AT+CSTT=\"internet.beeline.ru\",\"beeline\",\"beeline\"", "OK", 2000);
       sendATcommand("AT+SAPBR=0,1", "OK", 2000); //always turn gprs off - to avoid if AT+SAPBR=1,1 returning ERROR
 
@@ -428,7 +427,7 @@ int8_t getCoordinates() { //TODO add reporting error if location is missing !
 
    counter = 0;
    answer = 0;
-   memset(frame, '\0', 100);    // Initialize the string
+   memset(frame, '\0', 150);    // Initialize the string
    previous = millis();
    // this loop waits for the NMEA string
    do {
@@ -436,6 +435,10 @@ int8_t getCoordinates() { //TODO add reporting error if location is missing !
            frame[counter] = Serial.read();
            counter++;
            // check if the desired answer is in the response of the module
+           if (counter > sizeof(frame)-1)
+           {
+               break;
+           }
            if (strstr(frame, "OK") != NULL)
            {
                answer = 1;
@@ -453,18 +456,17 @@ int8_t getCoordinates() { //TODO add reporting error if location is missing !
    strcpy(latitude,strtok(NULL, ",")); // Gets latitude
    strcpy(altitude,strtok(NULL, ".")); // Gets altitude
    strtok(NULL, ",");
-   strcpy(date,strtok(NULL, ".")); // Gets date
+  //  strcpy(date,strtok(NULL, ".")); // Gets date
+   strtok(NULL, "."); //date
    strtok(NULL, ",");
    strtok(NULL, ",");
-   strcpy(satellites,strtok(NULL, ",")); // Gets satellites
+   strtok(NULL, ","); //satellites
+  //  strcpy(satellites,strtok(NULL, ",")); // Gets satellites
    strcpy(speed,strtok(NULL, ",")); // Gets speed over ground. Unit is knots.
-   strcpy(course,strtok(NULL, "\r")); // Gets course
+   strtok(NULL, "\r"); //course
+  //  strcpy(course,strtok(NULL, "\r")); // Gets course
 
    return answer;
-}
-
-void alarm() {
-
 }
 
 //void getBatChgLvl() {
@@ -511,17 +513,17 @@ void alarm() {
 //  return answer;
 //}
 
-void sendBatChgLvl() {
+// void sendBatChgLvl() {
   // // to cause interrupt on reciever device, because interrupts by incoming bytes in UART on it are disabled =(
   // digitalWrite(SIG_PIN, HIGH);
   // delay(200);
   // digitalWrite(SIG_PIN, LOW);
 
   // SoftSerial.print(batLvlStr);
-  SoftSerial.print(chgMode);
-  SoftSerial.print(percent);
+  // SoftSerial.print(chgMode);
+  // SoftSerial.print(percent);
   // SoftSerial.print(voltage);
-}
+// }
 
 // void sendCoordsInSMS() { //with test data now
 //   bool success = false;
@@ -573,19 +575,19 @@ void sendCoordinates() {
                 ledFlash(1000, ERROR_PIN, 10); //this is set to understand that something went wrong on data sending - the last step!
               }
             } else { //TODO: ALL HERE SHOW ERR
-             SoftSerial.println("ERR CON TYPE\n");
+            //  SoftSerial.println("ERR CON TYPE\n");
              ledFlash(1000, ERROR_PIN, 10);
             }
           } else {
-           SoftSerial.println("ERR SET URL\n");
+          //  SoftSerial.println("ERR SET URL\n");
            ledFlash(1000, ERROR_PIN, 10);
           }
         } else {
-         SoftSerial.println("ERR SET CID\n");
+        //  SoftSerial.println("ERR SET CID\n");
          ledFlash(1000, ERROR_PIN, 10);
         }
      } else {
-       SoftSerial.println("ERR INIT\n");
+      //  SoftSerial.println("ERR INIT\n");
        ledFlash(1000, ERROR_PIN, 10);
      }
     sendATcommand("AT+HTTPTERM", "OK", 5000);
@@ -595,7 +597,7 @@ void sendCoordinates() {
     }
   } else {
     // report missing location HERE
-    report_err(1, "Location_is_lost");
+    // report_err(1, "Location_is_lost");
     ledFlash(100, OK_PIN, 3);// TODO: SHOW near OK
   }
 }
@@ -639,56 +641,56 @@ void sendCoordinates() {
 
 // }
 
-void getLastSMSIndex() {
-  char buff[90]="";
-  int8_t answer = 0;
-  uint8_t x = 0;
-  long previous;
-  sendATcommand("AT+CMGF=1", "OK", 800);    // sets the SMS mode to text
-  sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 800); // choose sim card memory
-
-
-  memset(buff, '\0', 70);
-
-  int i = 0;
-
-  Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
-
-  previous = millis();
-  answer = 0;
-  // this loop waits for the NMEA string
-  do {
-      if(Serial.available() != 0){
-          buff[i] = Serial.read();
-          i++;
-          // check if the desired answer is in the response of the module
-          if (strstr(buff, "OK") != NULL)
-          {
-              answer = 1;
-          }
-      }
-      // Waits for the asnwer
-  }
-  while(answer == 0);
-
-  if (strstr(buff, "+CMGL") != NULL)
-  {
-    // char date[10] = "";
-    // char time[15] = "";
-    // char msg[15] = "";
-    sscanf(buff, "%*[^:]: %d, %*[^,], %[^,], %*[^,], %*[^,], %*s\"\n%*s", &sms_idx, sms_phone_from);
-
-//    SoftSerial.println();
-//    SoftSerial.print("SMS IDX: ");
-//    SoftSerial.print(sms_idx);
-//    SoftSerial.print("SMS FROM: ");
-//    SoftSerial.print(sms_phone_from);
-//    SoftSerial.println();
-  }
-  else
-  {
-    SoftSerial.println("ERROR GETTING LAST SMS INDEX OR NO UNREAD MESSAGES.");
-  }
+// void getLastSMSIndex() {
+//   char buff[90]="";
+//   int8_t answer = 0;
+//   uint8_t x = 0;
+//   long previous;
+//   sendATcommand("AT+CMGF=1", "OK", 800);    // sets the SMS mode to text
+//   sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 800); // choose sim card memory
+//
+//
+//   memset(buff, '\0', 70);
+//
+//   int i = 0;
+//
+//   Serial.println("AT+CMGL=\"REC UNREAD\", 0"); // choose unread sms
+//
+//   previous = millis();
+//   answer = 0;
+//   // this loop waits for the NMEA string
+//   do {
+//       if(Serial.available() != 0){
+//           buff[i] = Serial.read();
+//           i++;
+//           // check if the desired answer is in the response of the module
+//           if (strstr(buff, "OK") != NULL)
+//           {
+//               answer = 1;
+//           }
+//       }
+//       // Waits for the asnwer
+//   }
+//   while(answer == 0);
+//
+//   if (strstr(buff, "+CMGL") != NULL)
+//   {
+//     // char date[10] = "";
+//     // char time[15] = "";
+//     // char msg[15] = "";
+//     sscanf(buff, "%*[^:]: %d, %*[^,], %[^,], %*[^,], %*[^,], %*s\"\n%*s", &sms_idx, sms_phone_from);
+//
+// //    SoftSerial.println();
+// //    SoftSerial.print("SMS IDX: ");
+// //    SoftSerial.print(sms_idx);
+// //    SoftSerial.print("SMS FROM: ");
+// //    SoftSerial.print(sms_phone_from);
+// //    SoftSerial.println();
+//   }
+//   else
+//   {
+//     SoftSerial.println("ERR GET LAST SMS IDX");
+//   }
 
   // if (answer == 1)
   // {
@@ -711,31 +713,30 @@ void getLastSMSIndex() {
   // } else {
   //     SoftSerial.println("ERROR OR NO NEW MESSAGES");
   // }
-}
+// }
 
 void readSMS(int index) {
-  memset(SMS, '\0', 45);
+  memset(SMS, '\0', 100);
   int8_t answer;
   uint8_t x = 0;
-  char cmd[15] = "";
-  char index_str[4] = "";
-  SoftSerial.print("IDX RECV:");
+  char cmd[10] = "";
+  // char index_str[4] = "";
+  // SoftSerial.print("IDX");
   SoftSerial.print(index);
-  itoa(index, index_str, 10);
+  // itoa(index, index_str, 10);
   // && strstr(sms_phone_from, "9655766572") != NULL
   if (index > 0)
   {
-    SoftSerial.print("COND IS OK, READ MSG.\n");
+    // SoftSerial.print("COND IS OK, READ MSG.\n");
     // sendATcommand("AT+CMGF=1", "OK", 1000);    // sets the SMS mode to text
     // sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", "OK", 1000);    // selects the memory
     //TODO: read the LAST (!!!) SMS message, NOT FIRST !!!
-    sprintf(cmd, "AT+CMGR=%s", index_str);
+    sprintf(cmd, "AT+CMGR=%d", index);
     // SoftSerial.print(cmd);
-    SoftSerial.print("BEFORE READ MSG.\n");
     answer = sendATcommand(cmd, "+CMGR:", 2000);    // reads the first SMS
     if (answer == 1)
     {
-        SoftSerial.print("READ INC MSG.\n");
+        SoftSerial.print("R MS.\n");
         ledFlash(100, OK_PIN, 6);
         answer = 0;
         while(Serial.available() == 0);
@@ -763,44 +764,43 @@ void readSMS(int index) {
         // SoftSerial.print(SMS);
         // TODO: there sprintf ?
 
-        memset(cmd, '\0', 15); //commented for test
-        sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
+        memset(cmd, '\0', 10); //commented for test
+        sprintf(cmd, "AT+CMGD=%d", index); // delete read message
         answer = 0;
-        answer = sendATcommand("AT+CMGD=1", "OK", 1000);
+        answer = sendATcommand(cmd, "OK", 1000);
         if (answer == 1)
         {
-          SoftSerial.print("RM MSG OK");
+          SoftSerial.print("RM OK");
         }
         else
         {
-          SoftSerial.print("ERROR RM MSG");
+          SoftSerial.print("ERR RM");
         }
     }
     else
     {
-        SoftSerial.print("ERR READ MSG.");
-        SoftSerial.println(answer, DEC);
+        SoftSerial.print("ERR RD.");
         ledFlash(100, ERROR_PIN, 10);
     }
   }
   else
   {
-    if (index > 0)
-    {
-        memset(cmd, '\0', 15);
-        sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
-        answer = 0;
-        answer = sendATcommand(cmd, "OK", 1000);
-        if (answer == 1)
-        {
-          SoftSerial.print("RM NOT OWNER MSG OK");
-        }
-        else
-        {
-          SoftSerial.print("ERROR RM NOT OWNER MSG");
-        }
-    }
-    SoftSerial.println("NO SMS IDX.");
+    // if (index > 0)
+    // {
+    //     memset(cmd, '\0', 15);
+    //     sprintf(cmd, "AT+CMGD=%d", index); // delete read message
+    //     answer = 0;
+    //     answer = sendATcommand(cmd, "OK", 1000);
+    //     if (answer == 1)
+    //     {
+    //       SoftSerial.print("RM NO OK");
+    //     }
+    //     else
+    //     {
+    //       SoftSerial.print("ERR RM NO");
+    //     }
+    // }
+    SoftSerial.println("NO ID");
   }
 }
 
@@ -819,13 +819,13 @@ void setup() {
   TCCR1A = 0;
   TCCR1B = 0;
   TCNT1  = 0;
-
+  
   OCR1A = 31250;            // compare match register 16MHz/256/2Hz
   TCCR1B |= (1 << WGM12);   // CTC mode
   TCCR1B |= (1 << CS12);
   TCCR1B |= (1 << CS10);    // 1024 prescaler
   TIMSK1 |= (1 << OCIE1A);  // enable timer compare interrupt
-  interrupts();             // enable all interrupts
+
 
   //configure serials
   Serial.begin(19200);
@@ -834,58 +834,67 @@ void setup() {
   //configure module
 
   delay(2000);
-  SoftSerial.println("Conf GSM.");
+  SoftSerial.println("CGSM\n");
   gsm_up();
   ledFlash(50, ERROR_PIN, 3);
-
+  
   delay(100);
-  SoftSerial.println("Conf GPRS.");
+  SoftSerial.println("CGPRS\n");
   gprs_up();
   ledFlash(50, ERROR_PIN, 3);
-
+  
   delay(100);
-  // gps_up();
-  // ledFlash(50, ERROR_PIN, 3);
+  SoftSerial.println("CGPS\n");
+  gps_up();
+  ledFlash(50, ERROR_PIN, 3);
+  interrupts();             // enable all interrupts
 }
 
 void loop() {
 
-  delay(5000); // as getCoordinates();
-  delay(10000); // as sendCoordinates();
-  SoftSerial.print("SENT LOCATION REGULAR.\n");
-  // SoftSerial.print("AFTER SEND LOCATION.\n");
+  digitalWrite(13, HIGH);
+  delay(200);
+  digitalWrite(13, LOW);
+  delay(200);
 
+  // getCoordinates();
+  // sendCoordinates();
+  SoftSerial.print("SENT LOC\n");
+  
   if (mode == TRACK_MODE)
   {
     // delay(DEFAULT_TRACK_MODE_DELAY);
     // TODO: test working of powerDown after solving SMS, GPRS and read messages problems !!!
-    SoftSerial.print("TRACK MODE ACTIVE.\n");
+    SoftSerial.print("TM\n");
     for (int i = 0; i < 5; i++) //sleep for 40 seconds
     {
       // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
       if (cmd_recv_chg_mode == 1) {
-        SoftSerial.print("RET FROM TM DELAY.\n");
+        SoftSerial.print("RET TM\n");
         break;
       }
       delay(8000);
     }
   }
-  else // TODO: can not check sms (get +CMTI) with sleep module ! FIXME!
+  else // TODO: can not check sms (get +CMTI) with sleep module ! FIXME!!!!
   {
-    SoftSerial.print("WATCH MODE ACTIVE.\n");
-
-    sleep_module();
+    SoftSerial.print("WM\n");
+  
+    // sleep_module();
     // delay(DEFAULT_WATCH_MODE_DELAY);
-    for (int i = 0; i < 100; i++) //sleep for 800 seconds
+    for (int i = 0; i < 5; i++) //sleep for 1500 seconds (25 minutes)
     {
+      sleep_module();
       // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
       if (cmd_recv_chg_mode == 1) {
-        SoftSerial.print("RET FROM WM DELAY.\n");
+        SoftSerial.print("RET WM.\n");
         break;
       }
-      delay(8000);
+      delay(300000);
+      wake_up();
+      delay(10000);
     }
-    wake_up();
+    // wake_up();
   }
   if (cmd_recv_chg_mode == 1 && sms_idx > 0)
   {
@@ -893,12 +902,12 @@ void loop() {
         if (strstr(SMS, "WMA") != NULL)
         {
           mode = WATCH_MODE;
-          SoftSerial.print("SWITCHING TO WM.\n");
+          SoftSerial.print("SWITCH TO WM.\n");
         }
         else if (strstr(SMS, "TMA") != NULL)
         {
           mode = TRACK_MODE;
-          SoftSerial.print("SWITCHING TO TM.\n");
+          SoftSerial.print("SWITCH TO TM.\n");
         }
         else
         {
@@ -908,10 +917,12 @@ void loop() {
   }
   if (cmd_recv_get_coord == 1)
   {
-    SoftSerial.print("SENT LOCATION IMMEDIATLY AFTER RING.\n");
+    // getCoordinates();
+    // sendCoordinates();
+    SoftSerial.print("SENT ILOC.\n");
     cmd_recv_get_coord = 0;
   }
-
+  
 
   //TODO: coordinates difference should depend on calculation this value!!
 
@@ -922,14 +933,14 @@ ISR(TIMER1_COMPA_vect) {
   // noInterrupts();
   cli();
 
-  SoftSerial.print("IN ISR.\n");
+  SoftSerial.print("ISR\n");
   ledFlash(30, OK_PIN, 4);
-  int index = sms_idx;
-  char cmd[25] = "";
+  // int index = sms_idx;
+  // char cmd[25] = "";
   int x = 0;
-  char serial_buff[150]="";
+  char serial_buff[120]="";
 
-  memset(serial_buff, '\0', 150);
+  memset(serial_buff, '\0', 120);
   do {
     serial_buff[x] = Serial.read();
     x++;
@@ -938,7 +949,7 @@ ISR(TIMER1_COMPA_vect) {
       break;
     }
   } while (Serial.available() != 0);
-  SoftSerial.print(serial_buff);
+  // SoftSerial.print(serial_buff);
 
   // if ((timer_interrupt_count % 2) == 1)
   // {
@@ -1024,7 +1035,7 @@ ISR(TIMER1_COMPA_vect) {
   }
   if (strstr(serial_buff, "CMTI:") != NULL) {
     ledFlash(100, OK_PIN, 15);
-    SoftSerial.println(serial_buff);
+    // SoftSerial.println(serial_buff);
     sscanf(serial_buff, "%*[^:]: %*[^,],%d", &sms_idx);
     // TODO: add all checking here (phone number and others), before saying that cmd is recieved !!
     cmd_recv_chg_mode = 1;
@@ -1033,13 +1044,12 @@ ISR(TIMER1_COMPA_vect) {
   {
     Serial.print("AT+CLIP=1\n");
     _delay_ms(100);
-    SoftSerial.print("INC CALL");
     /* do something here, but need to check number */
     if (strstr(serial_buff, "+CLIP: \"+79655766572") != NULL)
     {
       /* number checked, do the staff */
       cmd_recv_get_coord = 1;
-      SoftSerial.print(" FROM OWNER.\n");
+      SoftSerial.print("INC CALL\n");
     }
   }
   // if ((timer_interrupt_count % 4) == 0)
