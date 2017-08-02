@@ -834,6 +834,7 @@ void setup() {
   //configure module
 
   delay(2000);
+  
   SoftSerial.println("CGSM\n");
   gsm_up();
   ledFlash(50, ERROR_PIN, 3);
