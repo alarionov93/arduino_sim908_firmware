@@ -876,7 +876,7 @@ void loop() {
 
     sleep_module();
     // delay(DEFAULT_WATCH_MODE_DELAY);
-    for (int i = 0; i < 100; i++) //sleep for 800 seconds
+    for (int i = 0; i < 30; i++) //sleep for 240 seconds
     {
       // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
       if (cmd_recv_chg_mode == 1) {
