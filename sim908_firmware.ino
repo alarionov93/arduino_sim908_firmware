@@ -783,25 +783,15 @@ void readSMS(int index) {
         ledFlash(100, ERROR_PIN, 10);
     }
   }
-  else
+  
+  // remove all messages
+  for (int i = 0; i < 15; i++)
   {
-    if (index > 0)
-    {
-        memset(cmd, '\0', 15);
-        sprintf(cmd, "AT+CMGD=%s", index_str); // delete read message
-        answer = 0;
-        answer = sendATcommand(cmd, "OK", 1000);
-        if (answer == 1)
-        {
-          SoftSerial.print("RM NOT OWNER MSG OK");
-        }
-        else
-        {
-          SoftSerial.print("ERROR RM NOT OWNER MSG");
-        }
-    }
-    SoftSerial.println("NO SMS IDX.");
+    memset(cmd, '\0', 15);
+    sprintf(cmd, "AT+CMGD=%s", i); // delete read message
+    answer = sendATcommand(cmd, "OK", 100);
   }
+  SoftSerial.println("SMS MEM CLEAR.");
 }
 
 void setup() {
